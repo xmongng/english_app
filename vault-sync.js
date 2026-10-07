@@ -85,6 +85,15 @@
       if(this.timer)clearTimeout(this.timer);
       localStorage.setItem(KEY,this.key);localStorage.setItem(ETAG,this.etag);localStorage.removeItem(DIRTY);
       apply(remote.snapshot);this.onRestore?.();this.status('cloud','Cloud saved');
+    },
+    async fork(){
+      const bytes=new Uint8Array(32);crypto.getRandomValues(bytes);
+      this.key=Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');
+      this.etag=null;this.conflict=false;this.dirty=false;this.revision=0;
+      if(this.timer)clearTimeout(this.timer);
+      localStorage.setItem(KEY,this.key);localStorage.removeItem(ETAG);
+      this.queue(0);await this.flush();
+      return this.format(this.key);
     }
   };
   root.CloudVault=vault;

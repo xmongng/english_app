@@ -60,3 +60,24 @@ test('browser cloud sync keeps the recovery code local and restores saved vocabu
  context.CloudVault.adopt(recovered);
  assert.equal(JSON.parse(values.get('ivDays'))[0].words[0].en,'coffee');
 });
+test('a stale browser copy can be saved under a separate recovery code',async()=>{
+ const source=fs.readFileSync(new URL('../vault-sync.js',import.meta.url),'utf8');
+ const values=new Map([['ivDays',JSON.stringify(content.days)],['ivStats',JSON.stringify(content.stats)],['ivVaultKey',codeA],['ivVaultEtag','"old"'],['ivVaultDirty','1']]);
+ const writes=[];
+ const localStorage={getItem:k=>values.get(k)||null,setItem:(k,v)=>values.set(k,String(v)),removeItem:k=>values.delete(k)};
+ const fetch=async(_url,options)=>{
+  if(options.method==='GET')return {ok:true,json:async()=>({exists:true,snapshot:content,etag:'"new"'})};
+  writes.push({authorization:options.headers.Authorization,body:JSON.parse(options.body)});
+  return {ok:true,json:async()=>({saved:true,etag:'"forked"'})};
+ };
+ const context=vm.createContext({globalThis:null,localStorage,crypto:webcrypto,fetch,AbortSignal,Uint8Array,Array,JSON,Response,clearTimeout:()=>{},setTimeout:()=>1});
+ context.globalThis=context;vm.runInContext(source,context);
+ await context.CloudVault.init({create:true});
+ assert.equal(context.CloudVault.conflict,true);
+ const replacement=await context.CloudVault.fork();
+ assert.equal(replacement.replaceAll('-','').length,64);
+ assert.notEqual(values.get('ivVaultKey'),codeA);
+ assert.equal(writes.length,1);
+ assert.equal(writes[0].body.snapshot.days[0].words[0].en,'coffee');
+ assert.equal(values.get('ivVaultDirty'),undefined);
+});

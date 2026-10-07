@@ -1901,6 +1901,7 @@ const dataService={
     };
     errorMemory.unshift(payload);
     localStore.saveErrors(errorMemory);
+    CloudVault.queue();
     if(this.mode==='cloud'&&this.errorsRef){
       try{await this.errorsRef.doc(payload.id).set(payload);updateSyncBadge('cloud','Cloud')}catch(err){console.warn('Error memory sync failed.',err);updateSyncBadge('error','Sync issue')}
     }
@@ -1911,6 +1912,7 @@ const dataService={
     if(idx<0)return;
     errorMemory[idx]={...errorMemory[idx],...patch};
     localStore.saveErrors(errorMemory);
+    CloudVault.queue();
     if(this.mode==='cloud'&&this.errorsRef){
       try{await this.errorsRef.doc(id).set(errorMemory[idx],{merge:true})}catch(err){console.warn('Error update sync failed.',err)}
     }
@@ -1933,6 +1935,7 @@ const dataService={
       mistakePatterns.unshift(payload);
     }
     localStore.saveMistakes(mistakePatterns);
+    CloudVault.queue();
     if(this.mode==='cloud'&&this.mistakePatternsRef){
       try{await this.mistakePatternsRef.doc(signature).set(payload,{merge:true});updateSyncBadge('cloud','Cloud')}catch(err){console.warn('Mistake pattern sync failed.',err);updateSyncBadge('error','Sync issue')}
     }
@@ -1942,6 +1945,7 @@ const dataService={
     const payload={id:'p'+Date.now()+Math.random().toString(16).slice(2,6),createdAt:new Date().toISOString(),...log};
     practiceLogs.unshift(payload);practiceLogs=practiceLogs.slice(0,300);localStore.saveLogs(practiceLogs);
     progressSummary=buildProgressSummary();localStore.saveProgress(progressSummary);
+    CloudVault.queue();
     if(this.mode==='cloud'&&this.practiceLogsRef){
       try{await Promise.all([this.practiceLogsRef.doc(payload.id).set(payload),this.progressRef.set({...progressSummary,lastUpdated:new Date().toISOString()})])}catch(err){console.warn('Practice log sync failed.',err)}
     }
@@ -2551,6 +2555,7 @@ function showVaultModal(){
   const code=CloudVault.hasKey()?CloudVault.format(CloudVault.key):'';
   showModal(`<div class="modal-title">Cloud backup</div>
     <p class="section-desc">Your words and progress are saved online when the status says <b>Cloud saved</b>. Keep this recovery code somewhere safe to open the same data on another device. Anyone with the code can access this data.</p>
+    ${CloudVault.conflict?'<p class="section-desc">This device has changes that conflict with a newer cloud copy. Your local data is still here.</p><button class="btn btn-ghost" onclick="showVaultConflictChoices()">Resolve sync conflict</button>':''}
     <div class="form-group"><label class="form-label">Your recovery code</label><input class="input" id="vaultCurrentCode" value="${esc(code)}" readonly autocomplete="off" spellcheck="false"></div>
     <div class="modal-btns"><button class="btn btn-ghost" onclick="copyVaultCode()">Copy code</button><button class="btn btn-p" onclick="CloudVault.flush().then(()=>toast('Cloud status updated'))">Save now</button></div>
     <div class="form-group" style="margin-top:20px"><label class="form-label">Use a code from another device</label><input class="input" id="vaultRestoreCode" placeholder="Paste your recovery code" autocomplete="off" spellcheck="false"></div>
@@ -2577,6 +2582,18 @@ function confirmVaultRestore(){
   if(!pendingVaultRestore)return;
   CloudVault.adopt(pendingVaultRestore);pendingVaultRestore=null;
   closeModal();toast('Cloud data opened');
+}
+async function showVaultConflictChoices(){
+  try{
+    pendingVaultRestore=await CloudVault.preview(CloudVault.key);
+    showModal(`<div class="modal-title">Choose which data to keep</div>
+      <p class="section-desc">The cloud has a newer version. You can load it here, or keep this browser's current data in a separate cloud backup with a new recovery code. Copy your current code first if you need the older backup.</p>
+      <div class="modal-btns"><button class="btn btn-ghost" onclick="forkVaultBackup()">Keep local in new backup</button><button class="btn btn-p" onclick="confirmVaultRestore()">Load latest cloud data</button></div>`);
+  }catch(error){toast(error.message||'Could not load cloud data');}
+}
+async function forkVaultBackup(){
+  await CloudVault.fork();pendingVaultRestore=null;
+  showVaultModal();toast(CloudVault.dirty?'New backup pending — try Save now':'New cloud backup created');
 }
 
 function renderTableHtml(tableLines) {
