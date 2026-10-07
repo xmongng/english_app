@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import core from '../learning-core.js';
+import '../learning-core.js';
+const core = globalThis.LearningCore;
 import fs from 'node:fs';
 import vm from 'node:vm';
 

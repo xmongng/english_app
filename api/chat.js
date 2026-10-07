@@ -1,5 +1,6 @@
-import core from '../learning-core.js';
+import '../learning-core.js';
 import { reserveNvidiaCall } from './rate-limit.js';
+const core = globalThis.LearningCore;
 
 const NVIDIA_API='https://integrate.api.nvidia.com/v1/chat/completions';
 const ROUTES={
