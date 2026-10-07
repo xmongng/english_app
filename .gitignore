@@ -4,3 +4,4 @@
 tests/live-ai-results.json
 tests/model-benchmark.json
 .vercel/
+node_modules/

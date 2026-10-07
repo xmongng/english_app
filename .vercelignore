@@ -3,3 +3,4 @@
 scripts/
 tests/
 server.mjs
+node_modules/

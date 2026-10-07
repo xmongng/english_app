@@ -966,7 +966,7 @@
         <div class="tstat tstat-streak" id="streakBadge" title="Daily Streak"><svg width="14" height="14" viewBox="0 0 24 24" fill="var(--coral)" stroke="none"><path d="M12 23c-4.97 0-9-3.58-9-8 0-3.19 2.13-6.03 3.5-7.5.31-.33.83-.1.83.35 0 1.88.93 3.51 2.17 4.65.17.16.43.04.43-.19 0-3.57 2.67-8.31 6.07-11.31.33-.29.83-.06.83.39 0 4.14 2.5 7.61 5.5 9.61.26.17.17.57-.13.63C18.82 12.36 16 14.5 16 18c0 2.76-1.79 5-4 5z"/></svg> <span>0</span></div>
         <div class="tstat tstat-xp" id="xpBadge" title="Experience Points"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> <span>0 XP</span></div>
         <div class="tstat tstat-level" id="levelBadge" title="Learner Level">Lv.<span>1</span> <span class="topbar-level-title" id="topbarLevelTitle">Novice</span></div>
-        <div class="tstat tstat-sync local" id="syncBadge">Offline</div>
+        <div class="tstat tstat-sync local" id="syncBadge" role="button" tabindex="0" title="Cloud backup and recovery" onclick="showVaultModal()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showVaultModal()}">Offline</div>
       </div>
     </div>
   </nav>
@@ -1067,6 +1067,7 @@
   <!-- Toast -->
   <div class="toast" id="toast"></div>
 
+<script src="vault-sync.js"></script>
 <script>
 /* ========== CONFIG ========== */
 const API_PROXY_URL='/api/chat';
@@ -1865,10 +1866,13 @@ const dataService={
   async persistAll(){
     this.persistLocal();
     this.scheduleCloudSync();
+    CloudVault.queue();
   },
   async flushCloudSync(){
     this.persistLocal();
     if(this.mode==='cloud'&&this.ready) await this.syncCloudNow();
+    CloudVault.queue(0);
+    await CloudVault.flush();
   },
   async cleanupDeletedDays(){
     if(this.mode!=='cloud'||!this.daysRef)return Promise.resolve();
@@ -2501,6 +2505,11 @@ function setVocabFilter(k,v){if(window.speechSynthesis) speechSynthesis.cancel()
 function setDayTab(tab){if(window.speechSynthesis) speechSynthesis.cancel();dayTab=tab;vocabFilters.limit=40;renderDay()}
 async function initApp(){
   await dataService.init();
+  await CloudVault.init({create:true,onRestore:()=>{
+    customTopics=safeParse(localStorage.getItem('customTopics'),[]);
+    dataService.bootstrapLocal();
+    if(appReady){renderHome();switchMainTab(currentMainTab);}
+  },onStatus:updateSyncBadge});
   appReady=true;
   updateTopStats();
   renderHome();
@@ -2521,7 +2530,10 @@ async function initApp(){
     if (document.hidden && window.speechSynthesis) {
       speechSynthesis.cancel();
     }
+    if(document.hidden)CloudVault.flush();
   });
+  window.addEventListener('online',()=>CloudVault.flush());
+  if(CloudVault.isNew)showVaultModal();
 }
 
 /* ========== UTILITIES ========== */
@@ -2533,6 +2545,38 @@ function closeModal(){
   $('#modalBg').classList.add('hidden');
   const box=$('#modalBox');
   if(box)box.classList.remove('modal-lg');
+}
+let pendingVaultRestore=null;
+function showVaultModal(){
+  const code=CloudVault.hasKey()?CloudVault.format(CloudVault.key):'';
+  showModal(`<div class="modal-title">Cloud backup</div>
+    <p class="section-desc">Your words and progress are saved online when the status says <b>Cloud saved</b>. Keep this recovery code somewhere safe to open the same data on another device. Anyone with the code can access this data.</p>
+    <div class="form-group"><label class="form-label">Your recovery code</label><input class="input" id="vaultCurrentCode" value="${esc(code)}" readonly autocomplete="off" spellcheck="false"></div>
+    <div class="modal-btns"><button class="btn btn-ghost" onclick="copyVaultCode()">Copy code</button><button class="btn btn-p" onclick="CloudVault.flush().then(()=>toast('Cloud status updated'))">Save now</button></div>
+    <div class="form-group" style="margin-top:20px"><label class="form-label">Use a code from another device</label><input class="input" id="vaultRestoreCode" placeholder="Paste your recovery code" autocomplete="off" spellcheck="false"></div>
+    <div class="modal-btns"><button class="btn btn-ghost" onclick="closeModal()">Close</button><button class="btn btn-p" onclick="previewVaultRestore()">Open saved data</button></div>`);
+}
+async function copyVaultCode(){
+  if(!CloudVault.hasKey())return;
+  try{await navigator.clipboard.writeText(CloudVault.format(CloudVault.key));toast('Recovery code copied');}
+  catch{const input=$('#vaultCurrentCode');input?.select();toast('Select and copy the code');}
+}
+async function previewVaultRestore(){
+  const code=$('#vaultRestoreCode')?.value||'';
+  try{
+    const remote=await CloudVault.preview(code);
+    if(remote.key===CloudVault.key){toast('This code is already in use');return;}
+    pendingVaultRestore=remote;
+    const wordCount=remote.snapshot.days.reduce((total,day)=>total+(day.words?.length||0),0);
+    showModal(`<div class="modal-title">Open cloud data?</div>
+      <p class="section-desc">This backup contains ${remote.snapshot.days.length} lessons and ${wordCount} words. Opening it will replace the data currently shown in this browser. Copy your current recovery code first if you may need this browser's data later.</p>
+      <div class="modal-btns"><button class="btn btn-ghost" onclick="showVaultModal()">Cancel</button><button class="btn btn-p" onclick="confirmVaultRestore()">Open cloud data</button></div>`);
+  }catch(error){toast(error.message||'Could not open cloud data');}
+}
+function confirmVaultRestore(){
+  if(!pendingVaultRestore)return;
+  CloudVault.adopt(pendingVaultRestore);pendingVaultRestore=null;
+  closeModal();toast('Cloud data opened');
 }
 
 function renderTableHtml(tableLines) {

@@ -885,6 +885,7 @@
     </div>
   </div>
 
+  <script src="vault-sync.js"></script>
   <script>
     const API_PROXY_URL = '/api/chat';
     const TTS_PROXY_URL = '/api/tts';
@@ -1013,9 +1014,9 @@
     // Local Storage Wrapper
     const localStore = {
       loadStats() { try { return JSON.parse(localStorage.getItem(STORAGE_KEYS.stats)); } catch(e) { return null; } },
-      saveStats(s) { localStorage.setItem(STORAGE_KEYS.stats, JSON.stringify(s)); },
+      saveStats(s) { localStorage.setItem(STORAGE_KEYS.stats, JSON.stringify(s)); CloudVault.queue(); },
       loadMistakes() { try { return JSON.parse(localStorage.getItem(STORAGE_KEYS.mistakes)) || []; } catch(e) { return []; } },
-      saveMistakes(m) { localStorage.setItem(STORAGE_KEYS.mistakes, JSON.stringify(m)); }
+      saveMistakes(m) { localStorage.setItem(STORAGE_KEYS.mistakes, JSON.stringify(m)); CloudVault.queue(); }
     };
 
     // Firebase Firestore Client
@@ -1190,6 +1191,7 @@
       }
       
       // Initialize Firebase Firestore connection first
+      await CloudVault.init({create:false});
       await cloudDB.init();
       
       loadBuddySession();
