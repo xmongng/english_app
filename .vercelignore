@@ -1,0 +1,5 @@
+.env
+.env.*
+scripts/
+tests/
+server.mjs

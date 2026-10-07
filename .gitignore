@@ -1,0 +1,6 @@
+.env
+.env.*
+!.env.example
+tests/live-ai-results.json
+tests/model-benchmark.json
+.vercel/

@@ -1,0 +1,2410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="refresh" content="0; url=ielts_vocab_master.html">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat Companion - IELTS & Native Practice</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%236366f1'/%3E%3Cstop offset='100%25' stop-color='%238b5cf6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='9' fill='url(%23g)'/%3E%3Cpath d='M16 8 L25 12 L16 16 L7 12 Z' fill='%23ffffff'/%3E%3Cpath d='M10 14 V19 C10 21, 22 21, 22 19 V14' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M22 12 V17' fill='none' stroke='%23ffffff' stroke-width='1.5' stroke-linecap='round'/%3E%3Ccircle cx='22' cy='18' r='1.5' fill='%23ffffff'/%3E%3C/svg%3E" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --sidebar: rgba(255, 255, 255, 0.85);
+      --card: #ffffff;
+      --card-hover: #f1f5f9;
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --primary-soft: rgba(99, 102, 241, 0.08);
+      --success: #10b981;
+      --success-soft: rgba(16, 185, 129, 0.1);
+      --coral: #f43f5e;
+      --coral-soft: rgba(244, 63, 94, 0.1);
+      --amber: #b45309;
+      --amber-soft: rgba(245, 158, 11, 0.1);
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: rgba(226, 232, 240, 0.8);
+      --border2: #f1f5f9;
+      --text2: #475569;
+      --muted: #94a3b8;
+      --r-lg: 16px;
+      --r-md: 12px;
+      --shadow: 0 4px 20px rgba(99, 102, 241, 0.05);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: linear-gradient(160deg,#f5f3ff 0%,#fdf2f8 35%,#fef9ec 70%,#f0fdf4 100%);
+      background-attachment: fixed;
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      overflow: hidden;
+    }
+
+    .app-container {
+      display: flex;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .sidebar {
+      width: 320px;
+      background-color: var(--sidebar);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+
+    .sidebar-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 16px;
+      color: var(--primary);
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-muted);
+      background: none;
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: 0.15s ease;
+      background-color: #ffffff;
+    }
+
+    .back-btn:hover {
+      color: var(--primary);
+      background-color: var(--primary-soft);
+      border-color: var(--primary);
+    }
+
+    .sidebar-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .selector-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .personality-card {
+      background-color: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-md);
+      padding: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: 0.2s ease;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+
+    .personality-card:hover {
+      background-color: var(--card-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    }
+
+    .personality-card.active {
+      border-color: var(--primary);
+      background-color: var(--primary-soft);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.06);
+    }
+
+    .avatar-circle {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      transition: transform 0.2s ease;
+    }
+
+    .personality-card:hover .avatar-circle {
+      transform: scale(1.05);
+    }
+
+    .personality-info {
+      flex: 1;
+    }
+
+    .personality-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .personality-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .topic-card {
+      background-color: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-md);
+      padding: 10px 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      transition: 0.15s ease;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+
+    .topic-card:hover {
+      background-color: var(--card-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    }
+
+    .topic-card.active {
+      border-color: var(--primary);
+      background-color: var(--primary-soft);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.06);
+    }
+
+    .topic-icon {
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+    }
+
+    .setting-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background-color: #e2e8f0;
+      border: 1px solid var(--border);
+      transition: .2s;
+      border-radius: 24px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 3px;
+      bottom: 3px;
+      background-color: #ffffff;
+      transition: .2s;
+      border-radius: 50%;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    }
+
+    input:checked + .slider {
+      background-color: var(--primary);
+      border-color: var(--primary);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(20px);
+    }
+
+    .voice-select {
+      width: 100%;
+      background-color: #ffffff;
+      border: 1.5px solid var(--border);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      margin-top: 6px;
+      outline: none;
+      font-weight: 500;
+      cursor: pointer;
+      transition: border-color 0.15s ease;
+    }
+
+    .voice-select:focus {
+      border-color: var(--primary);
+    }
+
+    .chat-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      background: transparent;
+    }
+
+    .chat-header {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      background-color: rgba(255, 255, 255, 0.8);
+      z-index: 5;
+    }
+
+    .chat-buddy-info h2 {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .chat-buddy-info p {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .msg-wrapper {
+      display: flex;
+      flex-direction: column;
+      max-width: 85%;
+      animation: fadeUp 0.25s ease;
+    }
+
+    .msg-wrapper.user {
+      align-self: flex-end;
+      align-items: flex-end;
+    }
+
+    .msg-wrapper.assistant {
+      align-self: flex-start;
+      align-items: flex-start;
+    }
+
+    .msg-container {
+      display: flex;
+      gap: 12px;
+      width: 100%;
+    }
+
+    .user .msg-container {
+      flex-direction: row-reverse;
+    }
+
+    .msg-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+
+    .msg-bubble {
+      padding: 14px 18px;
+      border-radius: 18px;
+      font-size: 14px;
+      line-height: 1.6;
+      word-wrap: break-word;
+      position: relative;
+    }
+
+    .user .msg-bubble {
+      background-color: var(--primary);
+      color: #fff;
+      border-top-right-radius: 4px;
+      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.15);
+    }
+
+    .assistant .msg-bubble {
+      background-color: #ffffff;
+      color: var(--text);
+      border-top-left-radius: 4px;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+    }
+
+    .msg-footer {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .user .msg-footer {
+      flex-direction: row-reverse;
+    }
+
+    .speak-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      padding: 2px;
+      border-radius: 4px;
+      transition: 0.1s;
+    }
+
+    .speak-btn:hover {
+      color: var(--primary);
+      background-color: var(--primary-soft);
+    }
+
+    .correction-card {
+      background-color: #fffbeb;
+      border: 1.5px solid #fde68a;
+      border-radius: var(--r-md);
+      padding: 12px 16px;
+      margin-top: 8px;
+      width: 100%;
+      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.06);
+      animation: fadeUp 0.3s ease;
+    }
+
+    .correction-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 800;
+      color: #b45309;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+
+    .correction-natural {
+      font-size: 13px;
+      font-weight: 700;
+      color: #15803d;
+      margin-bottom: 6px;
+      line-height: 1.5;
+    }
+
+    .correction-explanation {
+      font-size: 12px;
+      color: #4b5563;
+      line-height: 1.5;
+    }
+
+    .use-suggestion-btn {
+      margin-top: 8px;
+      background: #ffffff;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #374151;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: 0.15s;
+    }
+
+    .use-suggestion-btn:hover {
+      background-color: #f3f4f6;
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .typing-indicator {
+      display: flex;
+      gap: 4px;
+      padding: 6px 12px;
+    }
+
+    .typing-indicator span {
+      width: 6px;
+      height: 6px;
+      background-color: var(--text-muted);
+      border-radius: 50%;
+      animation: bounce 1.2s infinite ease-in-out;
+    }
+
+    .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes bounce {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-4px); }
+    }
+
+    .starters-wrapper {
+      padding: 0 24px;
+      margin-bottom: 10px;
+    }
+
+    .starters-container {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+
+    .starters-container::-webkit-scrollbar {
+      height: 4px;
+    }
+
+    .starters-container::-webkit-scrollbar-thumb {
+      background: rgba(0,0,0,0.1);
+      border-radius: 4px;
+    }
+
+    .starter-tag {
+      background-color: #ffffff;
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: 0.15s ease;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    }
+
+    .starter-tag:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background-color: var(--primary-soft);
+    }
+
+    .chat-input-panel {
+      padding: 16px 24px 24px;
+      border-top: 1px solid var(--border);
+      background-color: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+
+    .input-wrapper {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      background-color: #ffffff;
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-md);
+      padding: 6px 12px;
+      transition: 0.2s ease;
+    }
+
+    .input-wrapper:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    }
+
+    .chat-input {
+      flex: 1;
+      background: none;
+      border: none;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 14px;
+      outline: none;
+      padding: 8px 0;
+      resize: none;
+      max-height: 100px;
+      height: 38px;
+    }
+
+    .send-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background-color: var(--primary);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.2s ease;
+      box-shadow: 0 2px 8px rgba(99,102,241,0.2);
+    }
+
+    .send-btn:hover {
+      background-color: var(--primary-hover);
+      transform: scale(1.05);
+    }
+
+    .send-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .err-word {
+      color: #e11d48;
+      background-color: #ffe4e6;
+      padding: 1px 4px;
+      border-radius: 4px;
+      font-weight: 700;
+      text-decoration: line-through;
+    }
+
+    .correct-word {
+      color: #16a34a;
+      background-color: #dcfce7;
+      padding: 1px 4px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+
+    /* ===== AI ALERTS & PRONUNCIATION CARD ===== */
+    .ai-alert{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:12px;margin:10px 0;font-size:13.5px;line-height:1.55;box-shadow:0 1px 3px rgba(0,0,0,0.02);border:1.5px solid transparent;transition:transform 0.2s, box-shadow 0.2s}
+    .ai-alert:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,0.05)}
+    .ai-alert-icon{flex-shrink:0;margin-top:3px}
+    .ai-alert-success{background:#f0fdf4;border:1.5px solid rgba(34, 197, 94, 0.18);color:#15803d}
+    .ai-alert-danger{background:#fff1f2;border:1.5px solid rgba(244, 63, 94, 0.18);color:#b91c1c}
+    .ai-alert-warning{background:#fefce8;border:1.5px solid rgba(234, 179, 8, 0.18);color:#a16207}
+    .ai-alert-info{background:#f0f9ff;border:1.5px solid rgba(14, 165, 233, 0.18);color:#0369a1}
+    .code-chip{background:rgba(99, 102, 241, 0.08);color:#6366f1;padding:2px 6px;border-radius:6px;font-size:12px;font-family:monospace;border:1px solid rgba(99, 102, 241, 0.12);word-break:break-all;font-weight:600}
+
+    .pronunciation-card {
+      background: #f5f3ff;
+      border: 1.5px solid rgba(139, 92, 246, 0.18);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin: 12px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 14px rgba(0,0,0,0.04);
+      animation: fadeUp 0.2s ease;
+      text-align: left;
+    }
+    .pron-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .pron-word {
+      font-size: 16px;
+      font-weight: 800;
+      color: #8b5cf6;
+    }
+    .pron-ipa {
+      background: rgba(139, 92, 246, 0.08);
+      color: #8b5cf6;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 13.5px;
+      font-family: monospace;
+      font-weight: 600;
+    }
+    .pron-guide {
+      font-size: 13px;
+      color: #475569;
+      line-height: 1.5;
+    }
+    .pron-speak-btn {
+      background: #8b5cf6;
+      color: #fff;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.12s, background 0.12s;
+      flex-shrink: 0;
+    }
+    .pron-speak-btn:hover {
+      background: #7c3aed;
+      transform: scale(1.08);
+    }
+
+    @media (max-width: 768px) {
+      .app-container {
+        flex-direction: column;
+      }
+      .sidebar {
+        width: 100%;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+      .sidebar-scroll {
+        max-height: 200px;
+      }
+    }
+
+    /* --- Premium Markdown Styles inside Chat --- */
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+      margin: 12px 0;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+      background: var(--card);
+    }
+    .markdown-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+      text-align: left;
+      white-space: normal;
+    }
+    .markdown-table th, .markdown-table td {
+      white-space: normal;
+    }
+    .markdown-table th {
+      background: var(--border2);
+      color: var(--text);
+      font-weight: 600;
+      padding: 10px 14px;
+      border-bottom: 2px solid var(--border);
+    }
+    .markdown-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text2);
+    }
+    .markdown-table tr:last-child td {
+      border-bottom: none;
+    }
+    .markdown-table tr:nth-child(even) {
+      background: var(--border2);
+    }
+    .markdown-table .code-chip {
+      background: var(--primary-soft);
+      color: var(--primary);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 12px;
+    }
+    .md-list-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      margin: 4px 0 4px 8px;
+      white-space: normal;
+    }
+    .md-bullet {
+      color: var(--primary);
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+    .md-quote {
+      border-left: 3px solid var(--muted);
+      padding-left: 10px;
+      color: var(--text2);
+      font-style: italic;
+      margin: 8px 0;
+      white-space: normal;
+    }
+    .md-h3, .md-h4, .md-h5, .md-h6 {
+      margin: 12px 0 6px 0;
+      font-weight: 700;
+      color: var(--text);
+      white-space: normal;
+    }
+    .md-h3 { font-size: 1.15em; border-left: 3px solid var(--primary); padding-left: 8px; }
+    .md-h4 { font-size: 1.1em; color: var(--primary); }
+    .md-h5 { font-size: 1.05em; }
+    .md-h6 { font-size: 1em; color: var(--muted); }
+    .md-para-space {
+      height: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <span>Chat Buddy</span>
+        </div>
+        <a href="ielts_vocab_master.html" class="back-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          Vocab Master
+        </a>
+      </div>
+
+      <div class="sidebar-scroll">
+        <div>
+          <h3 class="section-title">Select Buddy Personality</h3>
+          <div class="selector-grid" id="personalityContainer"></div>
+        </div>
+
+        <div>
+          <h3 class="section-title">Choose Topic</h3>
+          <div class="selector-grid" id="topicContainer"></div>
+        </div>
+
+        <div style="border-top: 1px solid var(--border); padding-top: 16px;">
+          <h3 class="section-title">Voice Settings</h3>
+          <div class="setting-row">
+            <span class="setting-label">Text-to-Speech (TTS)</span>
+            <label class="switch">
+              <input type="checkbox" id="ttsToggle" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="setting-row" style="margin-top: 4px;">
+            <span class="setting-label">Voice Engine</span>
+            <select id="ttsEngine" class="voice-select" style="width: auto; padding: 4px 8px; font-size: 11px; height: 30px; margin: 0; line-height: 1;">
+              <option value="cloud">Premium (Cloud)</option>
+              <option value="browser">Instant (Browser)</option>
+            </select>
+          </div>
+          <div class="setting-row" style="margin-top: 4px; margin-bottom: 4px;">
+            <span class="setting-label">Speech Speed</span>
+            <select id="ttsSpeed" class="voice-select" style="width: auto; padding: 4px 8px; font-size: 11px; height: 30px; margin: 0; line-height: 1;">
+              <option value="normal">Normal (Bình thường)</option>
+              <option value="medium">Medium (Nhanh vừa)</option>
+              <option value="fast">Fast (Nhanh)</option>
+            </select>
+          </div>
+          <select id="voiceSelect" class="voice-select"></select>
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-area">
+      <div class="chat-header">
+        <div class="avatar-circle" id="headerAvatar">😎</div>
+        <div class="chat-buddy-info">
+          <h2 id="headerName">Leo</h2>
+          <p id="headerTopic">Free Talk</p>
+        </div>
+      </div>
+
+      <div class="chat-messages" id="chatFeed"></div>
+
+      <div class="starters-wrapper">
+        <div class="starters-container" id="startersContainer"></div>
+      </div>
+
+      <div class="chat-input-panel">
+        <div class="input-wrapper">
+          <input type="text" id="chatInput" class="chat-input" placeholder="Type a message..." autocomplete="off">
+          <button class="send-btn" id="sendBtn" onclick="handleSend()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_PROXY_URL = '/api/chat';
+    const TTS_PROXY_URL = '/api/tts';
+    const MODEL = 'openai/gpt-oss-20b';
+    const CHATTERBOX_VOICES = [
+      { id: 'Magpie-Multilingual.EN-US.Leo', label: 'Magpie English Male (Leo)', languageCode: 'en-US' },
+      { id: 'Magpie-Multilingual.EN-US.Jason', label: 'Magpie English Male (Jason)', languageCode: 'en-US' },
+      { id: 'Magpie-Multilingual.EN-US.Aria', label: 'Magpie English Female (Aria)', languageCode: 'en-US' },
+      { id: 'Magpie-Multilingual.EN-US.Sofia', label: 'Magpie English Female (Sofia)', languageCode: 'en-US' }
+    ];
+    const DEFAULT_TTS_VOICE = 'Magpie-Multilingual.EN-US.Leo';
+    const BUDDY_TTS_VOICES = {
+      leo: 'Magpie-Multilingual.EN-US.Leo',
+      arthur: 'Magpie-Multilingual.EN-US.Jason',
+      max: 'Magpie-Multilingual.EN-US.Leo',
+      chloe: 'Magpie-Multilingual.EN-US.Aria'
+    };
+
+    const BUDDIES = {
+      leo: {
+        id: 'leo',
+        name: 'Leo',
+        subtitle: 'The Chill Friend',
+        gender: 'male',
+        gradient: 'linear-gradient(135deg, #ffedd5, #fed7aa)',
+        iconColor: '#ea580c',
+        avatarSvg: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>`,
+        systemPrompt: 'You are Leo, a chill, supportive native English-speaking friend in his mid-twenties. Talk like a regular friend: casual, warm, and straightforward. Use contractions naturally, simple everyday words, and an occasional familiar idiom. Talk about hobbies, daily life, and weekend plans. Avoid academic language unless the user asks for it.',
+        styleGuide: 'Leo style: 1-3 short sentences in Free Talk or Daily Life. Sound friendly and relaxed, not like a teacher. Use slang such as "wanna" or "gonna" only when it fits naturally, never in every reply. Ask one genuine follow-up question when it helps the conversation.'
+      },
+      arthur: {
+        id: 'arthur',
+        name: 'Arthur',
+        subtitle: 'The Academic Mentor',
+        gender: 'male',
+        gradient: 'linear-gradient(135deg, #e2e8f0, #94a3b8)',
+        iconColor: '#334155',
+        avatarSvg: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/></svg>`,
+        systemPrompt: 'You are Arthur, a precise and encouraging IELTS academic mentor. Speak with professional, structured clarity and a serious, respectful tone. Use precise topic vocabulary only when it improves the answer. Help the student build logical, well-supported answers without inflated or obscure wording.',
+        styleGuide: 'Arthur style: concise, direct, and exam-focused. Prioritize accuracy, coherence, lexical resource, grammatical range, and answer structure. For IELTS tasks, identify one priority improvement and give one concrete Band 7+ alternative. Do not turn ordinary chat into a lecture.'
+      },
+      chloe: {
+        id: 'chloe',
+        name: 'Chloe',
+        subtitle: 'The Empathetic Companion',
+        gender: 'female',
+        gradient: 'linear-gradient(135deg, #dcfce7, #bbf7d0)',
+        iconColor: '#16a34a',
+        avatarSvg: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`,
+        systemPrompt: 'You are Chloe, a warm, thoughtful English companion. Speak gently and clearly. Focus on emotions, daily reflections, and supportive conversation, while staying grounded and practical.',
+        styleGuide: 'Chloe style: acknowledge an emotion when the user expresses one, then respond with one calm, useful thought or question. Keep corrections soft but clear. Do not use therapy language, excessive reassurance, or long reflective monologues.'
+      },
+      max: {
+        id: 'max',
+        name: 'Max',
+        subtitle: 'The Expressive Buddy',
+        gender: 'male',
+        gradient: 'linear-gradient(135deg, #fef9c3, #fef08a)',
+        iconColor: '#ca8a04',
+        avatarSvg: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+        systemPrompt: 'You are Max, an energetic, enthusiastic native English buddy. Use lively everyday language, familiar phrasal verbs, and occasional idioms. Keep messages punchy, positive, and full of character.',
+        styleGuide: 'Max style: energetic but clear. Use at most one idiom or slang phrase per reply, and only if it is common enough for a learner to reuse. For IELTS topics, keep the energy while using clean, exam-appropriate wording.'
+      }
+    };
+
+    const TOPICS = {
+      freetalk: { 
+        id: 'freetalk', 
+        label: 'Free Talk (Any Subject)', 
+        iconSvg: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>`, 
+        starters: ['Tell me a funny story', 'Let\'s talk about what is on your mind', 'Explain a common English idiom'],
+        modeGuide: 'Free Talk mode: prioritize natural daily conversation. Reply like a real person, keep it relaxed, and ask simple follow-up questions. Corrections should be brief and friendly.'
+      },
+      life: { 
+        id: 'life', 
+        label: 'Daily Life & Hobbies', 
+        iconSvg: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg>`, 
+        starters: ['Ask me about my favorite hobbies', 'What is your dream travel destination?', 'What does a typical Sunday look like for you?'],
+        modeGuide: 'Daily Life mode: keep conversation practical, natural, and personal. Teach everyday collocations and phrases people actually use.'
+      },
+      ielts1: { 
+        id: 'ielts1', 
+        label: 'IELTS Speaking Part 1', 
+        iconSvg: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>`, 
+        starters: ['Practice: Hometown', 'Practice: Job / Accommodation', 'Practice: Daily Routine'],
+        modeGuide: 'IELTS Speaking Part 1 mode: be concise and exam-focused. Help the student answer naturally in 2-4 sentences, with clear grammar, direct answers, and simple extensions.'
+      },
+      ielts2: { 
+        id: 'ielts2', 
+        label: 'IELTS Speaking Part 2', 
+        iconSvg: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`, 
+        starters: ['Give me a Cue Card card simulation', 'Practice talking for 2 minutes about a memorable event'],
+        modeGuide: 'IELTS Speaking Part 2 mode: guide the student to build a 1-2 minute answer with a clear story, time/place/person/details, natural transitions, and topic-specific vocabulary.'
+      },
+      ielts3: { 
+        id: 'ielts3', 
+        label: 'IELTS Speaking Part 3', 
+        iconSvg: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`, 
+        starters: ['Discuss: Impact of technology on children', 'Discuss: Online classes vs Classroom education', 'Discuss: Environment and city life'],
+        modeGuide: 'IELTS Speaking Part 3 mode: be more analytical and strict. Push for reasons, examples, comparisons, concessions, and precise academic vocabulary. Correct weak logic and vague answers.'
+      }
+    };
+
+    /* ========== FIREBASE CONFIG ========== */
+    const FIREBASE_CONFIG = null;
+    const CLOUD_PROFILE_ID = null;
+    const STORAGE_KEYS = {
+      days: 'ivDays',
+      stats: 'ivStats',
+      errors: 'ivErrors',
+      mistakes: 'ivMistakePatterns',
+      logs: 'ivPracticeLogs',
+      progress: 'ivProgress'
+    };
+
+    let userStats = { xp: 0, streak: 0, level: 1, mastered: {} };
+    let userMistakes = [];
+
+    const norm = s => (s || '').toLowerCase().trim().replace(/[.,!?;:'"]/g, '').replace(/\s+/g, ' ');
+
+    function buildErrorSignature(analysis, word, sentence) {
+      const pattern = norm(analysis.corePattern || analysis.errorDetail || analysis.shortReminder || sentence).split(' ').slice(0, 10).join('-');
+      return `${norm(analysis.errorType || 'other')}_${norm(word || 'general')}_${pattern}`.replace(/[^a-z0-9_-]/g, '').slice(0, 120) || 'mistake_' + Date.now();
+    }
+
+    // Local Storage Wrapper
+    const localStore = {
+      loadStats() { try { return JSON.parse(localStorage.getItem(STORAGE_KEYS.stats)); } catch(e) { return null; } },
+      saveStats(s) { localStorage.setItem(STORAGE_KEYS.stats, JSON.stringify(s)); },
+      loadMistakes() { try { return JSON.parse(localStorage.getItem(STORAGE_KEYS.mistakes)) || []; } catch(e) { return []; } },
+      saveMistakes(m) { localStorage.setItem(STORAGE_KEYS.mistakes, JSON.stringify(m)); }
+    };
+
+    // Firebase Firestore Client
+    const cloudDB = {
+      ready: false,
+      mode: 'local',
+      app: null,
+      db: null,
+      profileRef: null,
+      mistakePatternsRef: null,
+      statsRef: null,
+
+      async init() {
+        // Load offline storage first
+        const localStats = localStore.loadStats();
+        if (localStats) userStats = { ...userStats, ...localStats };
+        userMistakes = localStore.loadMistakes() || [];
+
+        if (typeof firebase === 'undefined' || !FIREBASE_CONFIG || !CLOUD_PROFILE_ID) {
+          console.warn("Firebase script libraries not loaded. Operating in Local Mode.");
+          return;
+        }
+
+        try {
+          this.app = firebase.apps && firebase.apps.length ? firebase.app() : firebase.initializeApp(FIREBASE_CONFIG);
+          this.db = firebase.firestore();
+          this.profileRef = this.db.collection('users').doc(CLOUD_PROFILE_ID);
+          this.mistakePatternsRef = this.profileRef.collection('mistakePatterns');
+          this.statsRef = this.profileRef.collection('stats').doc('main');
+
+          // Fetch Stats
+          const statsDoc = await this.statsRef.get();
+          if (statsDoc.exists) {
+            userStats = { ...userStats, ...statsDoc.data() };
+            localStore.saveStats(userStats);
+          }
+
+          // Fetch Mistakes
+          const mistakesSnap = await this.mistakePatternsRef.orderBy('lastSeenAt', 'desc').limit(80).get();
+          if (mistakesSnap && !mistakesSnap.empty) {
+            userMistakes = mistakesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            localStore.saveMistakes(userMistakes);
+          }
+
+          this.mode = 'cloud';
+          this.ready = true;
+          console.log("Firebase sync connected in Cloud Mode.");
+        } catch (err) {
+          console.warn("Failed to connect to Firebase. Falling back to Local Mode.", err);
+          this.mode = 'local';
+        }
+      },
+
+      async upsertMistakePattern(pattern) {
+        const now = new Date().toISOString();
+        const signature = pattern.signature || buildErrorSignature(pattern, pattern.targetWord || 'general_chat', pattern.exampleBad || '');
+        const idx = userMistakes.findIndex(p => p.signature === signature || p.id === signature);
+        let payload;
+
+        if (idx >= 0) {
+          const nextCount = (userMistakes[idx].count || 1) + 1;
+          payload = { ...userMistakes[idx], ...pattern, id: signature, signature, count: nextCount, lastSeenAt: now, status: 'active' };
+          userMistakes[idx] = payload;
+        } else {
+          payload = {
+            id: signature,
+            signature,
+            targetWord: pattern.targetWord || 'general_chat',
+            errorType: pattern.errorType || 'other',
+            corePattern: pattern.corePattern || 'Writing issue in chat',
+            shortReminder: pattern.shortReminder || 'Review phrasing',
+            bestCorrection: pattern.bestCorrection || pattern.natural || '',
+            exampleBad: pattern.exampleBad || pattern.original || '',
+            exampleGood: pattern.exampleGood || pattern.natural || '',
+            count: 1,
+            firstSeenAt: now,
+            lastSeenAt: now,
+            severity: 'minor',
+            status: 'active',
+            relatedWords: []
+          };
+          userMistakes.unshift(payload);
+        }
+
+        localStore.saveMistakes(userMistakes);
+
+        if (this.mode === 'cloud' && this.mistakePatternsRef) {
+          try {
+            await this.mistakePatternsRef.doc(signature).set(payload, { merge: true });
+            console.log("Mistake logged to Firestore successfully.");
+          } catch (err) {
+            console.warn("Failed to write mistake to Firestore.", err);
+          }
+        }
+        return payload;
+      }
+    };
+
+    // Cache current chat session in sessionStorage to survive page refreshes
+    const chatSession = {
+      save(buddyId, topicId, history) {
+        const key = `chat_history_${buddyId}_${topicId}`;
+        sessionStorage.setItem(key, JSON.stringify(history));
+      },
+      load(buddyId, topicId) {
+        const key = `chat_history_${buddyId}_${topicId}`;
+        try {
+          return JSON.parse(sessionStorage.getItem(key)) || null;
+        } catch(e) {
+          return null;
+        }
+      },
+      clear(buddyId, topicId) {
+        const key = `chat_history_${buddyId}_${topicId}`;
+        sessionStorage.removeItem(key);
+      }
+    };
+
+    let currentBuddy = 'leo';
+    let currentTopic = 'freetalk';
+    let chatHistory = [];
+    let apiLoading = false;
+    let synth = window.speechSynthesis;
+    let voices = [];
+    let activeAudio = null;
+    let activeAudioUrl = null;
+    let modelTtsUnavailableUntil = 0;
+    let userHasChosenVoice = localStorage.getItem('chatBuddyUserHasChosenVoice') === 'true';
+    let ttsEnabled = localStorage.getItem('chatBuddyTtsEnabled') !== 'false';
+    let ttsEngine = localStorage.getItem('chatBuddyTtsEngine') || 'cloud';
+    let ttsSpeed = localStorage.getItem('chatBuddyTtsSpeed') || 'normal';
+
+    const $ = s => document.querySelector(s);
+    const esc = s => String(s || '').replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      renderBuddiesList();
+      renderTopicsList();
+      initSpeech();
+      
+      const ttsToggle = $('#ttsToggle');
+      if (ttsToggle) {
+        ttsToggle.checked = ttsEnabled;
+        ttsToggle.addEventListener('change', () => {
+          ttsEnabled = ttsToggle.checked;
+          localStorage.setItem('chatBuddyTtsEnabled', String(ttsEnabled));
+          if (!ttsEnabled) cancelSpeech();
+          if (ttsEnabled) initSpeech();
+        });
+      }
+
+      const ttsEngineSelect = $('#ttsEngine');
+      if (ttsEngineSelect) {
+        ttsEngineSelect.value = ttsEngine;
+        ttsEngineSelect.addEventListener('change', () => {
+          ttsEngine = ttsEngineSelect.value;
+          localStorage.setItem('chatBuddyTtsEngine', ttsEngine);
+          userHasChosenVoice = localStorage.getItem('chatBuddyUserHasChosenVoice') === 'true';
+          cancelSpeech();
+          initSpeech();
+        });
+      }
+
+      const ttsSpeedSelect = $('#ttsSpeed');
+      if (ttsSpeedSelect) {
+        ttsSpeedSelect.value = ttsSpeed;
+        ttsSpeedSelect.addEventListener('change', () => {
+          ttsSpeed = ttsSpeedSelect.value;
+          localStorage.setItem('chatBuddyTtsSpeed', ttsSpeed);
+          cancelSpeech();
+        });
+      }
+      
+      // Initialize Firebase Firestore connection first
+      await cloudDB.init();
+      
+      loadBuddySession();
+      
+      $('#chatInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          handleSend();
+        }
+      });
+
+      $('#chatInput').addEventListener('input', () => {
+        cancelSpeech();
+      });
+
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) cancelSpeech();
+      });
+
+      $('#voiceSelect').addEventListener('change', () => {
+        userHasChosenVoice = true;
+        localStorage.setItem('chatBuddyUserHasChosenVoice', 'true');
+        localStorage.setItem('chatBuddySelectedVoice_' + ttsEngine + '_' + currentBuddy, $('#voiceSelect').value);
+      });
+    });
+
+    function renderBuddiesList() {
+      const html = Object.values(BUDDIES).map(b => `
+        <div class="personality-card ${b.id === currentBuddy ? 'active' : ''}" id="buddy-card-${b.id}" onclick="setBuddy('${b.id}')">
+          <div class="avatar-circle" style="background: ${b.gradient}; color: ${b.iconColor}">
+            ${b.avatarSvg}
+          </div>
+          <div class="personality-info">
+            <div class="personality-name">${b.name}</div>
+            <div class="personality-sub">${b.subtitle}</div>
+          </div>
+        </div>
+      `).join('');
+      $('#personalityContainer').innerHTML = html;
+    }
+
+    // Render topics list
+    function renderTopicsList() {
+      const html = Object.values(TOPICS).map(t => `
+        <div class="topic-card ${t.id === currentTopic ? 'active' : ''}" id="topic-card-${t.id}" onclick="setTopic('${t.id}')">
+          <span class="topic-icon" style="color: var(--primary)">${t.iconSvg}</span>
+          <span>${t.label}</span>
+        </div>
+      `).join('');
+      $('#topicContainer').innerHTML = html;
+    }
+
+    function renderStarters() {
+      const starters = TOPICS[currentTopic].starters;
+      const html = starters.map(s => `<div class="starter-tag" onclick="useStarter('${s.replace(/'/g, "\\'")}')">${s}</div>`).join('');
+      $('#startersContainer').innerHTML = html;
+    }
+
+    function setBuddy(id) {
+      if (apiLoading) return;
+      cancelSpeech();
+      document.querySelectorAll('.personality-card').forEach(c => c.classList.remove('active'));
+      $(`#buddy-card-${id}`).classList.add('active');
+      currentBuddy = id;
+      
+      const b = BUDDIES[id];
+      const headerAvatar = $('#headerAvatar');
+      if (headerAvatar) {
+        headerAvatar.style.background = b.gradient;
+        headerAvatar.style.color = b.iconColor;
+        headerAvatar.innerHTML = b.avatarSvg;
+      }
+      $('#headerName').textContent = b.name;
+      
+      userHasChosenVoice = localStorage.getItem('chatBuddyUserHasChosenVoice') === 'true';
+      autoSelectVoiceForBuddy(id, true);
+      
+      resetChat();
+    }
+
+    // Set topic
+    function setTopic(id) {
+      if (apiLoading) return;
+      if (synth) synth.cancel();
+      document.querySelectorAll('.topic-card').forEach(c => c.classList.remove('active'));
+      $(`#topic-card-${id}`).classList.add('active');
+      currentTopic = id;
+      
+      $('#headerTopic').textContent = TOPICS[id].label;
+      
+      renderStarters();
+      resetChat();
+    }
+
+    function resetChat() {
+      if (synth) synth.cancel();
+      chatHistory = [];
+      chatSession.clear(currentBuddy, currentTopic);
+      $('#chatFeed').innerHTML = '';
+      renderStarters();
+      sendInitialGreeting();
+    }
+
+    function loadBuddySession() {
+      const b = BUDDIES[currentBuddy];
+      const headerAvatar = $('#headerAvatar');
+      if (headerAvatar) {
+        headerAvatar.style.background = b.gradient;
+        headerAvatar.style.color = b.iconColor;
+        headerAvatar.innerHTML = b.avatarSvg;
+      }
+      renderStarters();
+      
+      const savedHistory = chatSession.load(currentBuddy, currentTopic);
+      if (savedHistory && savedHistory.length > 0) {
+        chatHistory = savedHistory;
+        $('#chatFeed').innerHTML = '';
+        chatHistory.forEach(item => {
+          appendMessage(item.role, item.content, item.feedback || null);
+        });
+      } else {
+        chatHistory = [];
+        sendInitialGreeting();
+      }
+    }
+
+    function sendInitialGreeting() {
+      const b = BUDDIES[currentBuddy];
+      const t = TOPICS[currentTopic];
+      let greeting = '';
+      
+      if (currentBuddy === 'leo') {
+        greeting = `Hey! I'm Leo. Nice to chat with you! Let's talk about "${t.label}". What is on your mind?`;
+      } else if (currentBuddy === 'arthur') {
+        greeting = `Hello! I am Arthur. I'm pleased to guide your practice session on "${t.label}" today. Ready to begin?`;
+      } else if (currentBuddy === 'chloe') {
+        greeting = `Hi there. I'm Chloe. Let's have a gentle talk about "${t.label}" today. Tell me, how has your day been?`;
+      } else {
+        greeting = `Yo! Max here! Ready to dive into "${t.label}"? Pick a starter below and let's get rolling!`;
+      }
+      
+      appendMessage('assistant', greeting);
+    }
+
+    function useStarter(text) {
+      $('#chatInput').value = text;
+      handleSend();
+    }
+
+    function useCorrectionSuggestion(text) {
+      $('#chatInput').value = text;
+      $('#chatInput').focus();
+    }
+
+    function appendMessage(role, text, correction = null) {
+      const feed = $('#chatFeed');
+      const wrapper = document.createElement('div');
+      wrapper.className = `msg-wrapper ${role}`;
+
+      const avatarHtml = role === 'user'
+        ? `<div class="msg-avatar" style="background: linear-gradient(135deg, #e0e7ff, #c7d2fe); color: #4f46e5;">
+             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+           </div>`
+        : `<div class="msg-avatar" style="background: ${BUDDIES[currentBuddy].gradient}; color: ${BUDDIES[currentBuddy].iconColor}">
+             ${BUDDIES[currentBuddy].avatarSvg.replace('width="22"', 'width="16"').replace('height="22"', 'height="16"').replace('stroke-width="2.5"', 'stroke-width="2"')}
+           </div>`;
+      const cleanText = role === 'assistant' ? fmtAI(text) : esc(text).replace(/\n/g, '<br>');
+
+      let inner = `
+        <div class="msg-container">
+          ${avatarHtml}
+          <div class="msg-bubble">${cleanText}</div>
+        </div>
+      `;
+
+      if (role === 'assistant') {
+        inner += `
+          <div class="msg-footer">
+            <span>${BUDDIES[currentBuddy].name}</span>
+            <button class="speak-btn" data-text="${esc(text)}" onclick="speakMessage(this, this.getAttribute('data-text'))" title="Speak Response">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+            </button>
+          </div>
+        `;
+      } else {
+        inner += `<div class="msg-footer"><span>You</span></div>`;
+      }
+
+      wrapper.innerHTML = inner;
+      feed.appendChild(wrapper);
+
+      if (role === 'user' && correction && correction.hasError) {
+        const cCard = document.createElement('div');
+        cCard.className = 'correction-card';
+        
+        const originalHtml = correction.originalHighlighted || esc(text);
+        const naturalHtml = correction.naturalHighlighted || esc(correction.natural);
+
+        cCard.innerHTML = `
+          <div class="correction-header">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:4px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            Grammar & Phrasing Review
+          </div>
+          <div style="font-size:12px; margin-bottom:6px; color:#475569;">
+            Original: <span>${originalHtml}</span>
+          </div>
+          <div class="correction-natural" style="font-size:13px; font-weight:700; margin-bottom:6px;">
+            Corrected: <span>${naturalHtml}</span>
+          </div>
+          <div class="correction-explanation" style="font-size:12px; color:#4b5563; margin-bottom:8px;">
+            ${esc(correction.explanation)}
+          </div>
+          <button class="use-suggestion-btn" onclick="useCorrectionSuggestion('${correction.natural.replace(/'/g, "\\'")}')">
+            Try speaking this
+          </button>
+        `;
+        wrapper.appendChild(cCard);
+      }
+
+      feed.scrollTop = feed.scrollHeight;
+    }
+
+    async function handleSend() {
+      const input = $('#chatInput');
+      const text = input.value.trim();
+      if (!text || apiLoading) return;
+      prepareSpeechFromUserGesture();
+
+      input.value = '';
+      input.disabled = true;
+      input.placeholder = "Buddy is typing...";
+      $('#sendBtn').disabled = true;
+
+      appendMessage('user', text);
+      chatHistory.push({ role: 'user', content: text });
+      chatSession.save(currentBuddy, currentTopic, chatHistory);
+
+      const feed = $('#chatFeed');
+      const typingWrap = document.createElement('div');
+      typingWrap.className = 'msg-wrapper assistant';
+      typingWrap.id = 'aiTyping';
+      
+      const avatarHtml = `<div class="msg-avatar" style="background: ${BUDDIES[currentBuddy].gradient}; color: ${BUDDIES[currentBuddy].iconColor}">
+         ${BUDDIES[currentBuddy].avatarSvg.replace('width="22"', 'width="16"').replace('height="22"', 'height="16"').replace('stroke-width="2.5"', 'stroke-width="2"')}
+       </div>`;
+
+      typingWrap.innerHTML = `
+        <div class="msg-container">
+          ${avatarHtml}
+          <div class="msg-bubble">
+            <div class="typing-indicator"><span></span><span></span><span></span></div>
+          </div>
+        </div>
+      `;
+      feed.appendChild(typingWrap);
+      feed.scrollTop = feed.scrollHeight;
+
+      apiLoading = true;
+
+      try {
+        const responseData = await fetchChatCompletion(text);
+        
+        const ti = $('#aiTyping');
+        if (ti) ti.remove();
+
+        appendMessage('assistant', responseData.chatResponse);
+        chatHistory.push({ role: 'assistant', content: responseData.chatResponse });
+        autoSpeakAssistant(responseData.chatResponse);
+
+        if (responseData.feedback && responseData.feedback.hasError) {
+          // Attach feedback to last user message in history
+          const lastUserMsg = chatHistory.slice().reverse().find(m => m.role === 'user');
+          if (lastUserMsg) {
+            lastUserMsg.feedback = responseData.feedback;
+          }
+
+          // DO NOT save new mistakes to database during casual buddy chat sessions.
+          // This keeps the mistake database clean of casual typing typos or informal sentences.
+          /*
+          await cloudDB.upsertMistakePattern({
+            targetWord: responseData.feedback.targetWord || 'general_chat',
+            errorType: responseData.feedback.errorType || 'grammar',
+            corePattern: responseData.feedback.corePattern || 'Writing issue in chat',
+            shortReminder: responseData.feedback.explanation || 'Review phrasing',
+            bestCorrection: responseData.feedback.natural || '',
+            exampleBad: text,
+            exampleGood: responseData.feedback.natural || '',
+            status: 'active'
+          });
+          */
+
+          const userWrappers = document.querySelectorAll('.msg-wrapper.user');
+          if (userWrappers.length > 0) {
+            const lastUser = userWrappers[userWrappers.length - 1];
+            if (!lastUser.querySelector('.correction-card')) {
+              const cCard = document.createElement('div');
+              cCard.className = 'correction-card';
+              
+              const originalHtml = responseData.feedback.originalHighlighted || esc(text);
+              const naturalHtml = responseData.feedback.naturalHighlighted || esc(responseData.feedback.natural);
+
+              cCard.innerHTML = `
+                <div class="correction-header">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:4px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                  Grammar & Phrasing Review
+                </div>
+                <div style="font-size:12px; margin-bottom:6px; color:#475569;">
+                  Original: <span>${originalHtml}</span>
+                </div>
+                <div class="correction-natural" style="font-size:13px; font-weight:700; margin-bottom:6px;">
+                  Corrected: <span>${naturalHtml}</span>
+                </div>
+                <div class="correction-explanation" style="font-size:12px; color:#4b5563; margin-bottom:8px;">
+                  ${esc(responseData.feedback.explanation)}
+                </div>
+                <button class="use-suggestion-btn" onclick="useCorrectionSuggestion('${responseData.feedback.natural.replace(/'/g, "\\'")}')">
+                  Try speaking this
+                </button>
+              `;
+              lastUser.appendChild(cCard);
+              feed.scrollTop = feed.scrollHeight;
+            }
+          }
+        }
+
+        // Cache the updated chat history
+        chatSession.save(currentBuddy, currentTopic, chatHistory);
+
+      } catch (err) {
+        console.error(err);
+        const ti = $('#aiTyping');
+        if (ti) ti.remove();
+        appendMessage('assistant', '⚠️ Connection issue: ' + err.message + '. Please check your network and try again.');
+      } finally {
+        apiLoading = false;
+        $('#sendBtn').disabled = false;
+        input.disabled = false;
+        input.placeholder = "Type a message...";
+        setTimeout(() => input.focus(), 50);
+      }
+    }
+
+    function polishNaturalCorrectionText(text) {
+      if (!text) return text;
+      return String(text).replace(
+        /I don't understand what the difference is between ([^,\n?]+?) and ([^,\n?]+?),?\s+(?:and|or)\s+how to use (?:them|it)\.?/i,
+        (_, a, b) => `I don't understand the difference between ${a.trim()} and ${b.trim()}, or how to use these terms.`
+      ).replace(
+        /I (?:still can['’]t|can['’]t even) use (?:the|that) idiom (?:above )?in (?:a )?real conversations?;\s*I['’]m bad, huh\?/i,
+        "I still can't use that idiom naturally in real conversations. I'm pretty bad at this, huh?"
+      ).replace(
+        /I don['’]t understand the difference between ([^,\n?]+?) and ([^,\n?]+?),?\s+or how to use them\.?/i,
+        (_, a, b) => `I don't understand the difference between ${a.trim()} and ${b.trim()}, or how to use these terms.`
+      ).replace(
+        /Let me give you some examples\.?/i,
+        'Give me some examples.'
+      );
+    }
+
+    function polishIntentForUserText(original, text) {
+      let out = String(text || '');
+      if (/what\s+you\s+can\s+help\s+me\??/i.test(original)) {
+        out = out.replace(/What can I help you with\?/gi, 'What can you help me with?');
+      }
+      if (/let\s+give\s+me\s+some\s+exma?p?les?/i.test(original)) {
+        out = out.replace(/Let me give you some examples\.?/gi, 'Give me some examples.');
+      }
+      return out;
+    }
+
+    function normalizeForOptionalCorrection(text) {
+      return String(text || '')
+        .toLowerCase()
+        .replace(/\bwhat's\b/g, 'what is')
+        .replace(/\bit's\b/g, 'it is')
+        .replace(/\bthat's\b/g, 'that is')
+        .replace(/\bthere's\b/g, 'there is')
+        .replace(/\bi'm\b/g, 'i am')
+        .replace(/\byou're\b/g, 'you are')
+        .replace(/\bwe're\b/g, 'we are')
+        .replace(/\bthey're\b/g, 'they are')
+        .replace(/[^\p{L}\p{N}\s]/gu, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function isAppStarterText(text) {
+      return Object.values(TOPICS).some(topic => (topic.starters || []).includes(text));
+    }
+
+    function isOptionalStyleFeedback(original, feedback) {
+      if (!feedback || !feedback.hasError) return false;
+      const natural = feedback.natural || '';
+      const explanation = feedback.explanation || '';
+      if (isAppStarterText(original)) return true;
+      const sameAfterContractions = normalizeForOptionalCorrection(original) === normalizeForOptionalCorrection(natural);
+      const styleOnlyReason = /contraction|casual|natural flow|period|punctuation|slightly smoother|more casual/i.test(explanation);
+      return sameAfterContractions && styleOnlyReason;
+    }
+
+    function normalizeBuddyFeedback(original, feedback) {
+      if (!feedback?.hasError) return { ...feedback, hasError: false };
+      const excerpt = String(feedback.errorExcerpt || '').replace(/[“”"']/g, '').trim();
+      const isGrounded = excerpt && original.toLowerCase().includes(excerpt.toLowerCase());
+      if (!isGrounded || isOptionalStyleFeedback(original, feedback)) return { hasError: false };
+      return feedback;
+    }
+
+    function stripOptionalStyleTip(original, response) {
+      let text = String(response || '');
+      if (!text) return text;
+      const shouldStrip = isAppStarterText(original) || /what is/i.test(original);
+      if (!shouldStrip) return text;
+      const patterns = [
+        /^Just a quick tip:\s*instead of [\s\S]*?(?:Anyway,\s*)/i,
+        /^Quick tip:\s*instead of [\s\S]*?(?:Anyway,\s*)/i,
+        /^Small note:\s*instead of [\s\S]*?(?:Anyway,\s*)/i,
+        /^Just a quick tip:[^\n.?!]*(?:what is|what's)[^\n.?!]*[.?!]\s*/i,
+        /^Quick tip:[^\n.?!]*(?:what is|what's)[^\n.?!]*[.?!]\s*/i
+      ];
+      for (const pattern of patterns) {
+        text = text.replace(pattern, '');
+      }
+      return text.trim();
+    }
+
+    function parseFeedbackJson(raw) {
+      let text = String(raw || '').trim();
+      // Strip markdown fences
+      text = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+      // Remove any trailing text after the JSON object (model sometimes appends extra text)
+      const trailingCleanup = new RegExp('[' + String.fromCharCode(125) + ']\\s*[' + String.fromCharCode(125) + '][\\s\\S]*$');
+      text = text.replace(trailingCleanup, String.fromCharCode(125, 125));
+
+      // Strategy: try multiple extraction approaches
+      const candidates = [text];
+
+      // Extract the outermost JSON object using brace counting (handles HTML inside strings)
+      const braceStart = text.indexOf('{');
+      if (braceStart !== -1) {
+        let depth = 0, inStr = false, esc = false, end = -1;
+        for (let i = braceStart; i < text.length; i++) {
+          const c = text[i];
+          if (esc) { esc = false; continue; }
+          if (c === '\\') { esc = true; continue; }
+          if (c === '"') { inStr = !inStr; continue; }
+          if (inStr) continue;
+          if (c === '{') depth++;
+          if (c === '}') { depth--; if (depth === 0) { end = i; break; } }
+        }
+        if (end !== -1) {
+          candidates.push(text.substring(braceStart, end + 1));
+        }
+      }
+
+      // Also try the greedy regex as last resort
+      const greedyMatch = (text.match(/\{[\s\S]*\}/) || [])[0];
+      if (greedyMatch) candidates.push(greedyMatch);
+
+      for (const candidate of candidates) {
+        try {
+          const obj = JSON.parse(candidate);
+          // Normalize span classes in highlighted fields
+          if (obj.originalHighlighted) {
+            obj.originalHighlighted = obj.originalHighlighted
+              .replace(/<span[^>]*class="(?:error|mistake|wrong)"[^>]*>/gi, '<span class="err-word">')
+              .replace(/<span[^>]*style="[^"]*background[^"]*"[^>]*>/gi, '<span class="err-word">');
+            // Convert markdown bold **word** to err-word spans if no spans present
+            if (!obj.originalHighlighted.includes('<span')) {
+              obj.originalHighlighted = obj.originalHighlighted.replace(/\*\*([^*]+)\*\*/g, '<span class="err-word">$1</span>');
+            }
+          }
+          if (obj.naturalHighlighted) {
+            obj.naturalHighlighted = obj.naturalHighlighted
+              .replace(/<span[^>]*class="(?:correct|corrected|fix|fixed)"[^>]*>/gi, '<span class="correct-word">')
+              .replace(/<span[^>]*style="[^"]*background[^"]*"[^>]*>/gi, '<span class="correct-word">');
+            // Convert markdown bold **word** to correct-word spans if no spans present
+            if (!obj.naturalHighlighted.includes('<span')) {
+              obj.naturalHighlighted = obj.naturalHighlighted.replace(/\*\*([^*]+)\*\*/g, '<span class="correct-word">$1</span>');
+            }
+          }
+          return obj;
+        } catch (e) {}
+      }
+
+      // Last resort: try to repair truncated JSON (missing closing brace/quote)
+      try {
+        let repaired = candidates[candidates.length - 1] || text;
+        // Close any unclosed string
+        const quoteCount = (repaired.match(/(?<!\\)"/g) || []).length;
+        if (quoteCount % 2 !== 0) repaired += '"';
+        // Close any unclosed braces
+        const openBraces = (repaired.match(/\{/g) || []).length;
+        const closeBraces = (repaired.match(/\}/g) || []).length;
+        for (let i = 0; i < openBraces - closeBraces; i++) repaired += '}';
+        const obj = JSON.parse(repaired);
+        return obj;
+      } catch (e) {}
+
+      throw new Error('Feedback JSON did not parse');
+    }
+
+    async function fetchChatCompletion(userText) {
+      const bObj = BUDDIES[currentBuddy];
+      const tObj = TOPICS[currentTopic];
+
+      // Extract mistake patterns and stats to feed into context
+      const activeMistakesList = userMistakes
+        .filter(m => m.status !== 'resolved')
+        .sort((a, b) => (b.count || 1) - (a.count || 1))
+        .slice(0, 10);
+
+      let databaseContext = `USER PROFILE & DATABASE CONTEXT:
+- Level: ${userStats.level || 1}
+- XP: ${userStats.xp || 0} XP
+- Streak: ${userStats.streak || 0} days
+- Active Mistakes Registered in database: ${activeMistakesList.length}
+`;
+
+      if (activeMistakesList.length > 0) {
+        databaseContext += `- User's most common writing/speaking mistakes:
+` + activeMistakesList.map(m => `  * [Pattern]: "${m.corePattern}" (Occurrences: ${m.count}). Incorrect phrasing example: "${m.exampleBad}" -> Natural Native Correction: "${m.bestCorrection}". Explanation/Reminder: "${m.shortReminder}"`).join('\n');
+      } else {
+        databaseContext += `- User's most common mistakes: No registered mistakes logged yet! They are doing great.`;
+      }
+
+      const systemPrompt = `/no_think\n${bObj.systemPrompt}
+You are talking to a student learning English. They are practicing vocabulary and sentence structures in the context of "${tObj.label}".
+
+${databaseContext}
+
+STYLE CONTRACT:
+${bObj.styleGuide || ''}
+
+TOPIC MODE:
+${tObj.modeGuide || ''}
+
+YOUR DUAL RESPONSIBILITY:
+1. Speak back to them naturally in your selected character tone.
+   - If they ask you about their stats, level, XP, or what mistakes they make most often, check the USER PROFILE & DATABASE CONTEXT above and answer accurately, referring directly to their specific stats and mistake list.
+   - CRITICAL ON GRAMMAR: Check ONLY the user's latest message (the very last user message in the chat history). If the user made a real grammar, spelling, word-choice, collocation, or clearly unnatural phrasing error in this latest message, briefly show the best natural corrected version before continuing with the chat reply. Do NOT analyze or correct any older user messages from earlier in the chat history. After a correction, continue the conversation with one short relevant sentence or question; do not answer with only the corrected sentence unless the user explicitly asks only for correction. Do NOT mark optional style preferences as errors. Do not mark valid alternative phrasings or grammatically correct sentences as errors (for example, "Passive listening helps you get used to English rhythm and pronunciation" is 100% correct and natural, so do not force "the English rhythm" or "the pronunciation"). Always correct capitalization errors for languages (e.g., "vietnamese" -> "Vietnamese", "english" -> "English") and incorrect article usage with uncountable language nouns (e.g., "into a natural Vietnamese" -> "into natural Vietnamese" or "into a natural Vietnamese sentence"). Do NOT create or mention a correction just to change "what is" to "what's", add a period, make a sentence more casual, or make an already natural sentence slightly smoother. If the original sentence is correct and acceptable in normal conversation, do not start with "Quick tip", "Just a quick tip", "Small note", or any correction-style sentence; simply answer normally and set feedback.hasError to false. The correction must be native-like and idiomatic, not only a minimal grammar repair. Preserve the user's intent and speaker roles; never turn the user's request into the assistant speaking as itself. Hard rule: if the user writes "what you can help me?", correct it as "What can you help me with?" Do NOT correct it as "What can I help you with?" because that reverses the speaker's intent. Hard rule: if the user writes "Let give me some exmaples", correct it as "Give me some examples." or "Could you give me some examples?" Do NOT correct it as "Let me give you some examples" because that reverses the speaker's intent. If the user asks for "examples" but the target word/phrase is unclear, ask a short clarifying question or use the immediately previous topic; never invent unrelated generic categories such as travel/work/daily-life examples. Hard rule: if the user writes "I don't understand what is the different/difference between X and Y, how to use it?", the natural correction MUST use this pattern: "I don't understand the difference between X and Y, or how to use these terms." Do NOT use the stiff pattern "I don't understand what the difference is between X and Y..." for this case. Hard rule: if the user says something like "I even can't use the idiom above in real conversation, I bad huh", correct it as natural self-talk, e.g. "I still can't use that idiom naturally in real conversations. I'm pretty bad at this, huh?" Do not use the unnatural phrase "I'm bad, huh?" unless the context is literally about moral behavior. Fix pronoun reference carefully: use "it" for one term, "them" for two terms, and "these terms/each term" when the user asks how to use vocabulary expressions.
+   - CRITICAL QUESTION-ANSWERING RULE: If the user asks a question, you must still answer their question or respond to their query in the main conversational part of your response (inside the ##CHAT## block), immediately following any friendly correction/pronunciation card. Never skip answering the user's actual question just because you corrected their grammar.
+   - CRITICAL ON PRONUNCIATION: If the user asks how to pronounce a word, how to speak a word, or asks for its phonetic guide/IPA, you MUST include a dedicated pronunciation guide line at the very beginning of your conversational response in this exact format (on its own line, no extra bolding or markdown tags in the prefix):
+     Pronunciation: /<IPA transcription>/ | Guide: <syllable breakdown, stress accentuation, e.g. ad-min-is-TRAY-shun> | Word: <the target word>
+     (For example: Pronunciation: /ədˌmɪn.əˈstreɪ.ʃən/ | Guide: ad-min-is-TRAY-shun | Word: administration)
+   - If their sentence had no errors, do not mention any corrections, just reply normally.
+   - The UI renders the correction card from ##FEEDBACK##. Keep ##CHAT## focused on the actual conversation; never repeat the corrected sentence there. If hasError is true, errorExcerpt must copy the exact problematic words from the latest user message. Do not flag or explain an error unless you can provide that exact excerpt.
+   - CORRECTION QUALITY STANDARD: Corrections must be accurate, natural, and context-aware. Prefer what a native speaker would actually say in the same situation over a literal grammar repair. Use "that idiom/this idiom" for a phrase just mentioned, "naturally" for language-use ability, and "in real conversations" when talking generally. Do not make the sentence more formal than necessary in Free Talk or Daily Life mode. In IELTS mode, corrections may be more academic, but they still must sound natural when spoken. Explain only the most important issue first; avoid overwhelming the student.
+   - CONCISE WORD USAGE: If the user asks how to use a word, how to pronounce it, or for its meaning, use plain English: one short meaning and one or two common, reusable examples. Explain an idiom only when you use one. Do not dump exercises, long grammar lectures, or advanced vocabulary unless requested. Ask about practice only when the user is actively practicing, not after every direct question. Use short headings or bullets only when they make a comparison easier to scan.
+   - CONCISE TRANSLATION RESPONSE: For any direct translation request (translating a sentence from English to Vietnamese or Vietnamese to English), provide ONLY the natural translation, followed by a brief 1-2 sentence explanation if needed. Do NOT automatically dump lists of vocabulary definitions, word-by-word grammar breakdowns, or unsolicited tips unless the user explicitly asks for details.
+   - IELTS STRICTNESS: For IELTS Speaking topics, evaluate answers through fluency/coherence, lexical resource, grammar range/accuracy, pronunciation where relevant, and task relevance. Be stricter about vague ideas, weak examples, memorized-sounding language, and unnatural collocations. When the user's IELTS answer is weak or vague, include a concise "Better version:" or equivalent improved sample with a specific example and stronger vocabulary. Still keep the buddy's personality in the delivery.
+2. Secretly analyze the user's latest message (the very last user message in the chat history) for real grammar errors, unnatural phrasings, or vocabulary issues. Do NOT analyze any older messages in the history. Be selective: if it is merely a valid alternative style, contraction choice, punctuation preference, or app-provided conversation starter, do not flag it.
+3. Formulate your response using this EXACT structure:
+
+##CHAT##
+[A concise, natural reply in the selected buddy's voice. Do not repeat the correction; the UI shows it separately.]
+##FEEDBACK##
+{"hasError": true/false, "errorExcerpt": "exact incorrect words copied from the latest user message; empty when hasError is false", "originalHighlighted": "The user's original sentence with mistake words wrapped in '<span class=\\\"err-word\\\">...</span>'", "natural": "The best natural native-like corrected sentence text, not just a minimal grammar fix", "naturalHighlighted": "The corrected sentence with changes wrapped in '<span class=\\\"correct-word\\\">...</span>'", "explanation": "A very short (1 sentence) explanation of the suggestion.", "errorType": "grammar/spelling/preposition/word-choice/other", "corePattern": "A highly condensed grammar rule name (e.g., subject-verb agreement)", "shortReminder": "A short, concise reminder for the user (e.g., remember to use plural)"}
+
+Do not wrap the feedback JSON in Markdown fences. Do not add any text after the JSON. If hasError is true, errorExcerpt must be a non-empty exact substring of the latest user message. If their sentence was natural enough and had no real error, set "hasError" to false and errorExcerpt to an empty string. A sentence does not need to be the single best possible wording to avoid correction. Make sure to suggest phrasing that sounds like a normal person, avoiding overly high-level big words.`;
+
+      const msgs = [{ role: 'system', content: systemPrompt }];
+      
+      // Chat context retention set to last 8 messages (4 full turns) to keep requests fast and responsive
+      const historyLimit = chatHistory.slice(-8);
+      historyLimit.forEach(m => {
+        msgs.push({ role: m.role, content: m.content });
+      });
+
+      const body = JSON.stringify({
+        model: MODEL,
+        messages: msgs,
+        temperature: 0.8,
+        max_tokens: 1500
+      });
+
+      const headers = {
+        'Content-Type': 'application/json'
+      };
+
+      async function requestWithRateLimit(url) {
+        const requestBody=JSON.parse(body);
+        for(let attempt=0;attempt<16;attempt++){
+          const response=await fetch(url,{method:'POST',headers,body:JSON.stringify(requestBody)});
+          if(response.status!==429||attempt===15)return response;
+          const wait=Math.max(1,Math.min(120,Number(response.headers.get('Retry-After'))||15));
+          const resume=Number(response.headers.get('X-AI-Resume-Model'));
+          if(Number.isInteger(resume)&&resume>=0)requestBody.resumeModel=resume;
+          await new Promise(resolve=>setTimeout(resolve,wait*1000));
+        }
+      }
+
+      // Fetch with: local Vercel /api/chat proxy first, then production proxy for static/file use.
+      let res = null, lastErr;
+
+      // 1. Vercel serverless proxy (no CORS - works in production)
+      try {
+        const r = await requestWithRateLimit('/api/chat');
+        if (r.status !== 404 && r.status !== 405) {
+          if (r.ok) { res = r; }
+          else {
+            const t = await r.text().catch(() => '');
+            throw new Error('API error ' + r.status + (t ? ' — ' + t.slice(0, 200) : ''));
+          }
+        }
+      } catch(e) {
+        if (e.message && e.message.startsWith('API error')) throw e;
+        lastErr = e;
+      }
+
+      // 2. Production proxy fallback. The API key stays server-side.
+      if (!res) {
+        try {
+          const r = await requestWithRateLimit(API_PROXY_URL);
+          if (r.ok) { res = r; }
+          else {
+            const t = await r.text().catch(() => '');
+            throw new Error('API error ' + r.status + (t ? ' — ' + t.slice(0, 200) : ''));
+          }
+        } catch(e) {
+          if (e.message && e.message.startsWith('API error')) throw e;
+          lastErr = e;
+        }
+      }
+
+      if (!res) throw lastErr || new Error('Connection failed. Please check your internet.');
+
+      const json = await res.json();
+      let reply = json.choices?.[0]?.message?.content || '';
+
+      // Retry once if model returns empty response
+      if (!reply.trim()) {
+        console.warn('Model returned empty response, retrying...');
+        try {
+          const retryRes = await requestWithRateLimit('/api/chat');
+          if (retryRes.ok) {
+            const retryJson = await retryRes.json();
+            reply = retryJson.choices?.[0]?.message?.content || '';
+          }
+        } catch (retryErr) {
+          console.warn('Retry also failed:', retryErr.message);
+        }
+      }
+
+      const chatSplit = reply.split('##FEEDBACK##');
+      const chatResponse = chatSplit[0].replace('##CHAT##', '').trim();
+      let feedback = { hasError: false };
+
+      if (chatSplit[1]) {
+        try {
+          feedback = parseFeedbackJson(chatSplit[1]);
+          if (feedback && !feedback.hasError) {
+            feedback = { ...feedback, hasError: false, natural: '', explanation: '', errorType: feedback.errorType || '' };
+          }
+          if (feedback && feedback.hasError) {
+            // Strip any HTML spans from natural field (should be plain text)
+            if (feedback.natural) {
+              feedback.natural = feedback.natural.replace(/<[^>]+>/g, '');
+            }
+            feedback.natural = polishNaturalCorrectionText(feedback.natural);
+            feedback.naturalHighlighted = polishNaturalCorrectionText(feedback.naturalHighlighted);
+            feedback.natural = polishIntentForUserText(userText, feedback.natural);
+            feedback.naturalHighlighted = polishIntentForUserText(userText, feedback.naturalHighlighted);
+            if (/what the difference is between/i.test(feedback.explanation || '')) {
+              feedback.explanation = 'Use "difference" as a noun, and use the more natural pattern "understand the difference between X and Y"; "these terms" clearly refers to both expressions.';
+            }
+            feedback = normalizeBuddyFeedback(userText, feedback);
+          }
+        } catch (e) {
+          console.warn("Failed to parse JSON feedback:", chatSplit[1]);
+        }
+      }
+
+      let cleanedChatResponse = stripOptionalStyleTip(userText, polishIntentForUserText(userText, polishNaturalCorrectionText(chatResponse)));
+      cleanedChatResponse = cleanedChatResponse.replace(/^\s*(?:No\s+corrections?\s+(?:needed|are\s+needed|required|necessary)|Your\s+sentence\s+(?:is\s+correct|has\s+no\s+errors)|Grammar\s+check:\s*No\s+errors\s+detected)[.:]?(?:\s+anyway,)?\s*/i, '');
+      if (cleanedChatResponse.length > 0) {
+        cleanedChatResponse = cleanedChatResponse.charAt(0).toUpperCase() + cleanedChatResponse.slice(1);
+      }
+      const askedForExamples = /(?:let\s+give\s+me\s+some\s+exma?p?les?|give\s+me\s+(?:some\s+)?examples?)/i.test(userText);
+      const hasPriorAssistantContext = chatHistory.slice(0, -1).some(m => m.role === 'assistant' && m.content && m.content.trim());
+      const genericExamples = /here are a few examples:\s*(?:\n|\r|\s)*1\.\s*\*\*(?:travel|work|daily life)|\*\*(?:travel|work|daily life)\*\*/i.test(cleanedChatResponse);
+      if (askedForExamples && !hasPriorAssistantContext && genericExamples) {
+        cleanedChatResponse = 'Give me some examples. What word, phrase, or topic would you like examples for?';
+      }
+      if (/let\s+give\s+me\s+some\s+exma?p?les?/i.test(userText) && /^give me some examples\.?$/i.test(cleanedChatResponse.trim())) {
+        cleanedChatResponse += ' What would you like examples of?';
+      }
+      if (feedback?.hasError && feedback.natural) {
+        const plainReply = cleanedChatResponse
+          .replace(/[*_`"“”]/g, '')
+          .replace(/\s+/g, ' ')
+          .trim()
+          .toLowerCase();
+        const plainNatural = feedback.natural
+          .replace(/[*_`"“”]/g, '')
+          .replace(/\s+/g, ' ')
+          .trim()
+          .toLowerCase();
+        const isOnlyCorrection = plainReply === plainNatural || plainReply === `got it! you should say: ${plainNatural}` || plainReply === `you should say: ${plainNatural}`;
+        if (isOnlyCorrection) {
+          cleanedChatResponse += ' Want to keep going with one more sentence?';
+        }
+      }
+      if (feedback?.hasError && feedback.natural && cleanedChatResponse.trim() === feedback.natural.trim()) {
+        cleanedChatResponse += ' What would you like to say next?';
+      }
+      return { chatResponse: cleanedChatResponse, feedback };
+    }
+
+    function selectedChatterboxVoice() {
+      const selected = $('#voiceSelect')?.value;
+      return CHATTERBOX_VOICES.find(v => v.id === selected) || CHATTERBOX_VOICES[0];
+    }
+
+    function autoSelectVoiceForBuddy(buddyId, force = false) {
+      const select = $('#voiceSelect');
+      if (!select) return;
+      
+      const savedVoice = localStorage.getItem('chatBuddySelectedVoice_' + ttsEngine + '_' + buddyId);
+      if (savedVoice) {
+        const optionExists = Array.from(select.options).some(opt => opt.value === savedVoice);
+        if (optionExists) {
+          select.value = savedVoice;
+          return;
+        }
+      }
+      
+      if (userHasChosenVoice && !force) return;
+      
+      if (ttsEngine === 'cloud') {
+        select.value = BUDDY_TTS_VOICES[buddyId] || DEFAULT_TTS_VOICE;
+      } else {
+        const fbVoice = browserVoiceForCurrentBuddy();
+        if (fbVoice) select.value = fbVoice.name;
+      }
+    }
+
+    function initSpeech() {
+      const select = $('#voiceSelect');
+      if (select) {
+        if (ttsEngine === 'cloud') {
+          select.innerHTML = CHATTERBOX_VOICES
+            .map(v => `<option value="${esc(v.id)}">${esc(v.label)}</option>`)
+            .join('');
+          autoSelectVoiceForBuddy(currentBuddy);
+        } else {
+          if (!voices.length && synth) {
+            voices = synth.getVoices().filter(v => v.lang && v.lang.startsWith('en'));
+          }
+          if (voices.length > 0) {
+            select.innerHTML = voices
+              .map(v => `<option value="${esc(v.name)}">${esc(v.name)} (${esc(v.lang)})</option>`)
+              .join('');
+            autoSelectVoiceForBuddy(currentBuddy);
+          } else {
+            select.innerHTML = '<option value="">(Loading browser voices...)</option>';
+          }
+        }
+      }
+
+      if (!synth) return;
+      const loadBrowserVoices = () => {
+        voices = synth.getVoices().filter(v => v.lang && v.lang.startsWith('en'));
+        if (ttsEngine === 'browser' && select) {
+          select.innerHTML = voices
+            .map(v => `<option value="${esc(v.name)}">${esc(v.name)} (${esc(v.lang)})</option>`)
+            .join('');
+          autoSelectVoiceForBuddy(currentBuddy);
+        }
+      };
+      loadBrowserVoices();
+      if (synth.onvoiceschanged !== undefined) {
+        synth.onvoiceschanged = loadBrowserVoices;
+      }
+    }
+
+    function cleanSpeechText(text) {
+      const alertRegex = /^\s*(Corrected|Correction|Suggested\s+fix|Better|Should\s+be|Mistake|Error|Incorrect|Incorrect\s+sentence|Pronunciation)\s*:/i;
+      const lines = String(text || '').split(/\r?\n/);
+      const filteredLines = lines.filter(line => !alertRegex.test(line));
+
+      return filteredLines.join('\n')
+        .replace(/<[^>]*>/g, ' ')
+        .replace(/```[\s\S]*?```/g, ' ')
+        .replace(/##CHAT##|##FEEDBACK##/g, ' ')
+        .replace(/[*_#>`]/g, '')
+        .replace(/^\s*[-•]\s*/gm, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function speechProfileForCurrentMode() {
+      const isIelts = currentTopic.startsWith('ielts');
+      
+      let baseRate = 1.0;
+      let basePitch = 1.0;
+      
+      if (ttsEngine === 'cloud') {
+        // Cloud TTS voices are pre-synthesized by a professional AI model (NVIDIA Magpie) at natural speed.
+        // We MUST use 1.0 baseline speed to keep them sounding completely natural and human-like!
+        baseRate = 1.0;
+        basePitch = 1.0;
+      } else {
+        // Browser fallback voices profile (Web Speech API can benefit from adjustments)
+        const profiles = {
+          leo: isIelts
+            ? { rate: 1.15, pitch: 1.01 }
+            : { rate: 1.2, pitch: 1.05 },
+          max: isIelts
+            ? { rate: 1.2, pitch: 1.05 }
+            : { rate: 1.25, pitch: 1.10 },
+          arthur: isIelts
+            ? { rate: 1.05, pitch: 0.95 }
+            : { rate: 1.05, pitch: 0.95 },
+          chloe: isIelts
+            ? { rate: 1.05, pitch: 1.02 }
+            : { rate: 1.05, pitch: 1.05 }
+        };
+        const p = profiles[currentBuddy] || { rate: 1.1, pitch: 1.0 };
+        baseRate = p.rate;
+        basePitch = p.pitch;
+      }
+      
+      const speedMultipliers = {
+        normal: 1.0,
+        medium: 1.15,
+        fast: 1.3
+      };
+      const multiplier = speedMultipliers[ttsSpeed] || 1.0;
+      
+      return {
+        rate: Number((baseRate * multiplier).toFixed(2)),
+        pitch: basePitch,
+        volume: 1
+      };
+    }
+
+    function cancelSpeech() {
+      if (activeAudio) {
+        activeAudio.pause();
+        activeAudio.src = '';
+        activeAudio = null;
+      }
+      if (activeAudioUrl) {
+        URL.revokeObjectURL(activeAudioUrl);
+        activeAudioUrl = null;
+      }
+      if (synth) synth.cancel();
+    }
+
+    function browserVoiceForCurrentBuddy() {
+      if (!voices.length && synth) voices = synth.getVoices().filter(v => v.lang && v.lang.startsWith('en'));
+      if (!voices.length) return null;
+
+      // If user has chosen a specific browser voice, use that
+      if (ttsEngine === 'browser' && userHasChosenVoice) {
+        const selectedName = $('#voiceSelect')?.value;
+        const selected = voices.find(v => v.name === selectedName);
+        if (selected) return selected;
+      }
+
+      // 1. Try preferred voices
+      const preferred = {
+        arthur: ['daniel', 'oliver', 'en-gb', 'siri voice 2', 'siri voice 4'],
+        leo: ['alex', 'nathan', 'google us english', 'siri voice 2', 'siri voice 4'],
+        max: ['siri voice 3', 'alex', 'google us english'],
+        chloe: ['samantha', 'karen', 'fiona', 'female', 'siri voice 1', 'siri voice 3']
+      }[currentBuddy] || ['google', 'siri'];
+
+      const matchedPreferred = voices.find(v => {
+        const haystack = `${v.name} ${v.lang}`.toLowerCase();
+        return preferred.some(term => haystack.includes(term));
+      });
+      if (matchedPreferred) return matchedPreferred;
+
+      // 2. Try gender-specific matching if preferred fails
+      const buddy = BUDDIES[currentBuddy];
+      const isFemale = buddy && buddy.gender === 'female';
+      const femaleKeywords = ['female', 'samantha', 'zira', 'karen', 'fiona', 'siri voice 1', 'siri voice 3', 'hazel', 'susan', 'lisa', 'microsoft zira'];
+      const maleKeywords = ['male', 'david', 'daniel', 'alex', 'nathan', 'siri voice 2', 'siri voice 4', 'george', 'james', 'ravi', 'microsoft david'];
+
+      const genderMatched = voices.find(v => {
+        const nameLower = v.name.toLowerCase();
+        const keywords = isFemale ? femaleKeywords : maleKeywords;
+        return keywords.some(kw => nameLower.includes(kw));
+      });
+      if (genderMatched) return genderMatched;
+
+      // 3. Absolute fallback: use different index offsets to prevent single voice fallback
+      const buddyIndex = { leo: 0, arthur: 1, max: 2, chloe: 3 }[currentBuddy] || 0;
+      return voices[buddyIndex % voices.length] || voices[0] || null;
+    }
+
+    function triggerBrowserSpeech(cleanText) {
+      if (!synth) {
+        toastVoiceUnavailable();
+        return;
+      }
+      if (!cleanText) return;
+
+      synth.cancel();
+      if (synth.paused) synth.resume();
+
+      setTimeout(() => {
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        const fallbackVoice = browserVoiceForCurrentBuddy();
+        if (fallbackVoice) utterance.voice = fallbackVoice;
+        utterance.lang = fallbackVoice?.lang || (currentBuddy === 'arthur' ? 'en-GB' : 'en-US');
+
+        const profile = speechProfileForCurrentMode();
+        utterance.rate = profile.rate;
+        utterance.pitch = profile.pitch;
+        utterance.volume = profile.volume;
+
+        synth.speak(utterance);
+      }, 50);
+    }
+
+    async function triggerModelSpeech(cleanText) {
+      const voice = selectedChatterboxVoice();
+      const trimmedText = cleanText.slice(0, 1000);
+      cancelSpeech();
+
+      const response = await fetch(TTS_PROXY_URL, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({text:trimmedText,voiceName:voice.id,languageCode:voice.languageCode})
+      });
+      if (!response.ok) throw new Error(`TTS request failed (${response.status})`);
+      activeAudioUrl = URL.createObjectURL(await response.blob());
+      activeAudio = new Audio(activeAudioUrl);
+      const profile = speechProfileForCurrentMode();
+      activeAudio.defaultPlaybackRate = profile.rate;
+      activeAudio.playbackRate = profile.rate;
+      activeAudio.onplay = () => {
+        activeAudio.playbackRate = profile.rate;
+      };
+      activeAudio.onended = () => cancelSpeech();
+      await activeAudio.play();
+    }
+
+    function triggerSpeech(text) {
+      const cleanText = cleanSpeechText(text);
+      if (!cleanText) return;
+
+      if (ttsEngine === 'browser') {
+        triggerBrowserSpeech(cleanText);
+        return;
+      }
+
+      if (Date.now() < modelTtsUnavailableUntil) {
+        triggerBrowserSpeech(cleanText);
+        return;
+      }
+      triggerModelSpeech(cleanText).catch(err => {
+        console.warn('Chatterbox TTS unavailable, using browser voice fallback.', err);
+        modelTtsUnavailableUntil = Date.now() + 5 * 60 * 1000;
+        triggerBrowserSpeech(cleanText);
+      });
+    }
+
+    function prepareSpeechFromUserGesture() {
+      if (!synth || !ttsEnabled) return;
+      voices = synth.getVoices().filter(v => v.lang.startsWith('en'));
+      if (synth.paused) synth.resume();
+    }
+
+    function autoSpeakAssistant(text) {
+      if (!ttsEnabled || document.hidden) return;
+      triggerSpeech(text);
+    }
+
+    function toastVoiceUnavailable() {
+      console.warn('Text-to-Speech is not supported in this browser.');
+    }
+
+    function speakMessage(btn, text) {
+      triggerSpeech(text);
+      btn.style.transform = 'scale(1.2)';
+      setTimeout(() => btn.style.transform = 'none', 200);
+    }
+
+    function speak(t) {
+      triggerSpeech(t);
+    }
+
+    function renderTableHtml(tableLines) {
+      if (tableLines.length < 2) return '';
+      const headers = tableLines[0].split('|').slice(1, -1).map(h => h.trim());
+      
+      const alignLines = tableLines[1].split('|').slice(1, -1).map(a => {
+        const t = a.trim();
+        if (t.startsWith(':') && t.endsWith(':')) return 'center';
+        if (t.endsWith(':')) return 'right';
+        return 'left';
+      });
+      
+      const dataRows = tableLines.slice(2).map(row => {
+        return row.split('|').slice(1, -1).map(c => c.trim());
+      });
+      
+      let html = '<div class="table-responsive"><table class="markdown-table">';
+      
+      html += '<thead><tr>';
+      headers.forEach((h, idx) => {
+        const align = alignLines[idx] || 'left';
+        html += `<th style="text-align: ${align}">${fmtMarkdownInline(h)}</th>`;
+      });
+      html += '</tr></thead>';
+      
+      html += '<tbody>';
+      dataRows.forEach(row => {
+        html += '<tr>';
+        headers.forEach((_, idx) => {
+          const cellText = row[idx] || '';
+          const align = alignLines[idx] || 'left';
+          html += `<td style="text-align: ${align}">${fmtMarkdownInline(cellText)}</td>`;
+        });
+        html += '</tr>';
+      });
+      html += '</tbody></table></div>';
+      return html;
+    }
+
+    function fmtAI(t){
+      if(!t)return '';
+      const lines = t.split('\n');
+      const processed = [];
+      let i = 0;
+      
+      while (i < lines.length) {
+        const line = lines[i];
+        const trimmed = line.trim();
+        
+        // 1. Detect Markdown Table
+        if (trimmed.startsWith('|') && trimmed.endsWith('|') && (trimmed.match(/\|/g) || []).length >= 2) {
+          if (i + 1 < lines.length) {
+            const nextLine = lines[i + 1].trim();
+            if (nextLine.startsWith('|') && nextLine.endsWith('|') && /^[|:\-\s]+$/.test(nextLine)) {
+              const tableLines = [trimmed, nextLine];
+              let j = i + 2;
+              while (j < lines.length) {
+                const dl = lines[j].trim();
+                if (dl.startsWith('|') && dl.endsWith('|') && (dl.match(/\|/g) || []).length >= 2) {
+                  tableLines.push(dl);
+                  j++;
+                } else {
+                  break;
+                }
+              }
+              processed.push(renderTableHtml(tableLines));
+              i = j;
+              continue;
+            }
+          }
+        }
+        
+        // 2. Detect Blockquote
+        if (trimmed.startsWith('>')) {
+          const quoteText = trimmed.substring(1).trim();
+          processed.push(`<blockquote class="md-quote">${fmtMarkdownInline(quoteText)}</blockquote>`);
+          i++;
+          continue;
+        }
+        
+        // 3. Detect Headings
+        if (trimmed.startsWith('#')) {
+          const hashCount = trimmed.match(/^#+/)[0].length;
+          const headingText = trimmed.substring(hashCount).trim();
+          if (hashCount >= 1 && hashCount <= 6) {
+            const level = Math.min(hashCount + 2, 6);
+            processed.push(`<h${level} class="md-h${level}">${fmtMarkdownInline(headingText)}</h${level}>`);
+            i++;
+            continue;
+          }
+        }
+        
+        // 4. Detect Unordered List Items
+        if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+          const itemText = trimmed.substring(2).trim();
+          processed.push(`<div class="md-list-item"><span class="md-bullet">•</span> <div>${fmtMarkdownInline(itemText)}</div></div>`);
+          i++;
+          continue;
+        }
+        
+        // 5. Detect Ordered List Items
+        const olMatch = trimmed.match(/^(\d+)\.\s+(.*)$/);
+        if (olMatch) {
+          const num = olMatch[1];
+          const itemText = olMatch[2];
+          processed.push(`<div class="md-list-item"><span class="md-bullet">${num}.</span> <div>${fmtMarkdownInline(itemText)}</div></div>`);
+          i++;
+          continue;
+        }
+        
+        // 6. Paragraph spacing on blank lines
+        if (trimmed === '') {
+          processed.push('<div class="md-para-space"></div>');
+          i++;
+          continue;
+        }
+        
+        // 7. Detect AI Alert Prefix labels
+        const colonIdx = trimmed.indexOf(':');
+        if (colonIdx !== -1) {
+          const prefixPart = trimmed.substring(0, colonIdx).replace(/[\*\#\_]/g, '').trim();
+          const contentPart = trimmed.substring(colonIdx + 1).trim();
+          
+          const isAlert = /^(Corrected|Correction|Suggested\s+fix|Better|Should\s+be|Mistake|Error|Incorrect|Incorrect\s+sentence|Explanation|Why|Rule|Grammar\s+Rule|Tip|Note|Advice)$/i.test(prefixPart);
+          if (isAlert) {
+            const lowerContent = contentPart.replace(/[*_`]/g, '').trim().toLowerCase();
+            const startsWithNone = !lowerContent || /^(none|n\/a|no\s+errors?|no\s+mistakes?)\b/i.test(lowerContent);
+            if (startsWithNone) {
+              i++;
+              continue;
+            }
+          }
+          
+          if (/^(Corrected|Correction|Suggested\s+fix|Better|Should\s+be)$/i.test(prefixPart)) {
+            processed.push(`<div class="ai-alert ai-alert-success">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="ai-alert-icon"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+              <div><strong>Corrected:</strong> ${fmtMarkdownInline(contentPart)}</div>
+            </div>`);
+            i++;
+            continue;
+          }
+          if (/^(Mistake|Error|Incorrect|Incorrect\s+sentence)$/i.test(prefixPart)) {
+            processed.push(`<div class="ai-alert ai-alert-danger">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="ai-alert-icon"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+              <div><strong>Mistake:</strong> ${fmtMarkdownInline(contentPart)}</div>
+            </div>`);
+            i++;
+            continue;
+          }
+          if (/^(Explanation|Why|Rule|Grammar\s+Rule)$/i.test(prefixPart)) {
+            processed.push(`<div class="ai-alert ai-alert-warning">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="ai-alert-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+              <div><strong>Explanation:</strong> ${fmtMarkdownInline(contentPart)}</div>
+            </div>`);
+            i++;
+            continue;
+          }
+          if (/^(Tip|Note|Advice)$/i.test(prefixPart)) {
+            processed.push(`<div class="ai-alert ai-alert-info">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="ai-alert-icon"><path d="M9 18h6M10 22h4M12 2a8 8 0 0 0-8 8c0 2.2 1.2 4.1 3 5.2v2.8h10v-2.8c1.8-1.1 3-3 3-5.2a8 8 0 0 0-8-8z"></path></svg>
+              <div><strong>Tip:</strong> ${fmtMarkdownInline(contentPart)}</div>
+            </div>`);
+            i++;
+            continue;
+          }
+          if (/^(Pronunciation)$/i.test(prefixPart)) {
+            const parts = contentPart.split('|');
+            let ipa = '';
+            let guide = '';
+            let word = '';
+            parts.forEach(p => {
+              const colon = p.indexOf(':');
+              if (colon !== -1) {
+                const k = p.substring(0, colon).trim().toLowerCase();
+                const v = p.substring(colon + 1).trim();
+                if (k.includes('word')) word = v;
+                else if (k.includes('guide')) guide = v;
+              } else {
+                if (p.trim().startsWith('/')) {
+                  ipa = p.trim();
+                }
+              }
+            });
+            if (!ipa) {
+              const matchIpa = contentPart.match(/\/([^\/]+)\//);
+              if (matchIpa) ipa = matchIpa[0];
+            }
+            const cleanWord = word.replace(/['"“”]/g, '');
+            processed.push(`<div class="pronunciation-card">
+              <div class="pron-row">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <span class="pron-word">${word || 'Word'}</span>
+                  <span class="pron-ipa">${ipa || '/.../'}</span>
+                </div>
+                <button class="pron-speak-btn" onclick="speak('${cleanWord.replace(/'/g, "\\'")}')" title="Listen Pronunciation">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                </button>
+              </div>
+              <div class="pron-guide"><strong>Guide:</strong> ${guide || 'No pronunciation guide description provided.'}</div>
+            </div>`);
+            i++;
+            continue;
+          }
+        }
+        
+        // 8. Normal line
+        processed.push(fmtMarkdownInline(line));
+        i++;
+      }
+      
+      let finalHtml = '';
+      for (let k = 0; k < processed.length; k++) {
+        const current = processed[k];
+        const next = processed[k + 1];
+        finalHtml += current;
+        if (next !== undefined) {
+          const isCurrentBlock = current.startsWith('<div') || current.startsWith('<blockquote') || current.startsWith('<h') || current.startsWith('<table');
+          const isNextBlock = next.startsWith('<div') || next.startsWith('<blockquote') || next.startsWith('<h') || next.startsWith('<table');
+          if (!isCurrentBlock && !isNextBlock) {
+            finalHtml += '<br>';
+          }
+        }
+      }
+      return finalHtml;
+    }
+
+    function fmtMarkdownInline(text) {
+      return esc(text).replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+                 .replace(/\*(.+?)\*/g,'<em>$1</em>')
+                 .replace(/`(.+?)`/g,'<code class="code-chip">$1</code>');
+    }
+  </script>
+</body>
+</html>
