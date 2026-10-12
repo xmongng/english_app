@@ -44,7 +44,8 @@ test('browser cloud sync keeps the recovery code local and restores saved vocabu
  const values=new Map([['ivDays',JSON.stringify(content.days)],['ivStats',JSON.stringify(content.stats)]]);
  const requests=[];let stored=null,etag='"first"';
  const localStorage={getItem:k=>values.get(k)||null,setItem:(k,v)=>values.set(k,String(v)),removeItem:k=>values.delete(k)};
- const fetch=async(_url,options)=>{
+ const fetch=async(url,options)=>{
+  if(url==='/api/account')return {ok:true,json:async()=>({account:null})};
   requests.push({method:options.method,authorization:options.headers.Authorization});
   if(options.method==='GET')return {ok:true,json:async()=>stored?{exists:true,snapshot:stored,etag}:{exists:false,snapshot:null,etag:null}};
   stored=JSON.parse(options.body).snapshot;etag='"saved"';return {ok:true,json:async()=>({saved:true,etag})};
@@ -65,7 +66,8 @@ test('a stale browser copy can be saved under a separate recovery code',async()=
  const values=new Map([['ivDays',JSON.stringify(content.days)],['ivStats',JSON.stringify(content.stats)],['ivVaultKey',codeA],['ivVaultEtag','"old"'],['ivVaultDirty','1']]);
  const writes=[];
  const localStorage={getItem:k=>values.get(k)||null,setItem:(k,v)=>values.set(k,String(v)),removeItem:k=>values.delete(k)};
- const fetch=async(_url,options)=>{
+ const fetch=async(url,options)=>{
+  if(url==='/api/account')return {ok:true,json:async()=>({account:null})};
   if(options.method==='GET')return {ok:true,json:async()=>({exists:true,snapshot:content,etag:'"new"'})};
   writes.push({authorization:options.headers.Authorization,body:JSON.parse(options.body)});
   return {ok:true,json:async()=>({saved:true,etag:'"forked"'})};
@@ -80,4 +82,47 @@ test('a stale browser copy can be saved under a separate recovery code',async()=
  assert.equal(writes.length,1);
  assert.equal(writes[0].body.snapshot.days[0].words[0].en,'coffee');
  assert.equal(values.get('ivVaultDirty'),undefined);
+});
+test('browser account sync restores lessons on a second device without a recovery code',async()=>{
+ const source=fs.readFileSync(new URL('../vault-sync.js',import.meta.url),'utf8');
+ let account=null,cloud=null,etag='"account-1"';
+ const fetch=async(url,options={})=>{
+  if(url==='/api/account'){
+   if(!options.method)return {ok:true,json:async()=>({account})};
+   const body=JSON.parse(options.body);
+   if(body.action==='register'){
+    cloud=body.snapshot;account={id:'c'.repeat(64),email:body.email};
+   }
+   return {ok:true,json:async()=>({account})};
+  }
+  if(options.method==='GET')return {ok:true,json:async()=>cloud?{exists:true,snapshot:cloud,etag}:{exists:false,snapshot:null,etag:null}};
+  cloud=JSON.parse(options.body).snapshot;etag='"account-2"';
+  return {ok:true,json:async()=>({saved:true,etag})};
+ };
+ const device=values=>{
+  const localStorage={getItem:k=>values.get(k)||null,setItem:(k,v)=>values.set(k,String(v)),removeItem:k=>values.delete(k)};
+  const context=vm.createContext({globalThis:null,localStorage,crypto:webcrypto,fetch,AbortSignal,Uint8Array,Array,JSON,Response,clearTimeout:()=>{},setTimeout:()=>1});
+  context.globalThis=context;vm.runInContext(source,context);return context.CloudVault;
+ };
+ const firstValues=new Map([['ivDays',JSON.stringify(content.days)],['ivStats',JSON.stringify(content.stats)]]);
+ const first=device(firstValues);
+ await first.init({create:true});
+ await first.signIn('register','learner@example.com','password123');
+ assert.equal(first.mode,'account');
+ const secondValues=new Map();
+ const second=device(secondValues);
+ await second.init({create:true});
+ assert.equal(second.mode,'account');
+ assert.equal(second.key,'');
+ assert.equal(JSON.parse(secondValues.get('ivDays'))[0].words[0].en,'coffee');
+ account=null;
+ await second.init({create:true});
+ assert.equal(second.mode,'signedout');
+ secondValues.set('ivDays',JSON.stringify([{id:'day-2',words:[{en:'tea',vi:'trà'}]}]));
+ second.queue();
+ assert.equal(secondValues.get('ivAccountDirty'),'1');
+ account={id:'c'.repeat(64),email:'learner@example.com'};
+ await second.init({create:true});
+ assert.equal(cloud.days[0].words[0].en,'tea');
+ assert.equal(secondValues.get('ivAccountDirty'),undefined);
 });

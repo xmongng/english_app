@@ -9,6 +9,7 @@ if (fs.existsSync(envPath)) process.loadEnvFile(envPath);
 const { default: chat } = await import('./api/chat.js');
 const { default: tts } = await import('./api/tts.js');
 const { default: vault } = await import('./api/vault.js');
+const { default: account } = await import('./api/account.js');
 const port = Number(process.env.PORT || 3000);
 const publicFiles = new Map([
   ['/index.html', 'text/html'], ['/ielts_vocab_master.html', 'text/html'],
@@ -17,12 +18,12 @@ const publicFiles = new Map([
 ]);
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost');
-  if (url.pathname === '/api/chat' || url.pathname === '/api/tts' || url.pathname === '/api/vault') {
+  if (url.pathname === '/api/chat' || url.pathname === '/api/tts' || url.pathname === '/api/vault' || url.pathname === '/api/account') {
     try {
       let size = 0; const chunks = [];
       for await (const chunk of req) {
         size += chunk.length;
-        if (size > (url.pathname === '/api/vault' ? 3200 * 1024 : 128 * 1024)) { res.writeHead(413); res.end('Request too large'); return; }
+        if (size > (url.pathname === '/api/vault' || url.pathname === '/api/account' ? 3200 * 1024 : 128 * 1024)) { res.writeHead(413); res.end('Request too large'); return; }
         chunks.push(chunk);
       }
       const raw = Buffer.concat(chunks).toString();
@@ -32,7 +33,7 @@ const server = http.createServer(async (req, res) => {
       res.status = code => { res.statusCode = code; return res; };
       res.json = data => { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(data)); };
       res.send = data => res.end(data);
-      await (url.pathname === '/api/chat' ? chat : url.pathname === '/api/tts' ? tts : vault)(req, res);
+      await (url.pathname === '/api/chat' ? chat : url.pathname === '/api/tts' ? tts : url.pathname === '/api/account' ? account : vault)(req, res);
     } catch { if (!res.headersSent) res.writeHead(500); res.end('Request failed'); }
     return;
   }

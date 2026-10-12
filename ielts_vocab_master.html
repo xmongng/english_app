@@ -966,7 +966,7 @@
         <div class="tstat tstat-streak" id="streakBadge" title="Daily Streak"><svg width="14" height="14" viewBox="0 0 24 24" fill="var(--coral)" stroke="none"><path d="M12 23c-4.97 0-9-3.58-9-8 0-3.19 2.13-6.03 3.5-7.5.31-.33.83-.1.83.35 0 1.88.93 3.51 2.17 4.65.17.16.43.04.43-.19 0-3.57 2.67-8.31 6.07-11.31.33-.29.83-.06.83.39 0 4.14 2.5 7.61 5.5 9.61.26.17.17.57-.13.63C18.82 12.36 16 14.5 16 18c0 2.76-1.79 5-4 5z"/></svg> <span>0</span></div>
         <div class="tstat tstat-xp" id="xpBadge" title="Experience Points"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> <span>0 XP</span></div>
         <div class="tstat tstat-level" id="levelBadge" title="Learner Level">Lv.<span>1</span> <span class="topbar-level-title" id="topbarLevelTitle">Novice</span></div>
-        <div class="tstat tstat-sync local" id="syncBadge" role="button" tabindex="0" title="Cloud backup and recovery" onclick="showVaultModal()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showVaultModal()}">Offline</div>
+        <div class="tstat tstat-sync local" id="syncBadge" role="button" tabindex="0" title="Account and cloud sync" onclick="showAccountModal()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showAccountModal()}">Offline</div>
       </div>
     </div>
   </nav>
@@ -2513,7 +2513,7 @@ async function initApp(){
     customTopics=safeParse(localStorage.getItem('customTopics'),[]);
     dataService.bootstrapLocal();
     if(appReady){renderHome();switchMainTab(currentMainTab);}
-  },onStatus:updateSyncBadge});
+  },onStatus:(kind,label)=>updateSyncBadge(CloudVault.account?kind:(kind==='error'?'error':'local'),CloudVault.account?label:(kind==='error'?'Backup issue':'Sign in to sync'))});
   appReady=true;
   updateTopStats();
   renderHome();
@@ -2535,9 +2535,13 @@ async function initApp(){
       speechSynthesis.cancel();
     }
     if(document.hidden)CloudVault.flush();
+    else CloudVault.refresh();
   });
-  window.addEventListener('online',()=>CloudVault.flush());
-  if(CloudVault.isNew)showVaultModal();
+  window.addEventListener('online',()=>CloudVault.refresh());
+  if(CloudVault.mode==='signedout')showSignInModal();
+  else if(CloudVault.mode==='guest'&&!localStorage.getItem('ivAccountPrompted')){
+    localStorage.setItem('ivAccountPrompted','1');showAccountModal();
+  }
 }
 
 /* ========== UTILITIES ========== */
@@ -2551,7 +2555,52 @@ function closeModal(){
   if(box)box.classList.remove('modal-lg');
 }
 let pendingVaultRestore=null;
+function showAccountModal(){
+  if(CloudVault.account){
+    showModal(`<div class="modal-title">Your learning account</div>
+      <p class="section-desc">Signed in as <b>${esc(CloudVault.account.email)}</b>. Your vocabulary and progress sync across devices when the status says <b>Cloud saved</b>.</p>
+      ${CloudVault.conflict?'<p class="section-desc">Changes on this device conflict with a newer cloud copy.</p><button class="btn btn-ghost" onclick="showVaultConflictChoices()">Resolve sync conflict</button>':''}
+      <div class="modal-btns"><button class="btn btn-ghost" onclick="signOutAccount()">Sign out</button><button class="btn btn-p" onclick="CloudVault.refresh().then(()=>showAccountModal())">Sync now</button></div>`);
+    return;
+  }
+  showModal(`<div class="modal-title">Sync across devices</div>
+    <p class="section-desc">Create an account to keep your current lessons and progress online. Sign in with the same email and password on your other devices. No recovery code is needed.</p>
+    <form onsubmit="submitAccount(event,'register')">
+      <div class="form-group"><label class="form-label" for="accountEmail">Email</label><input class="input" id="accountEmail" type="email" autocomplete="email" required></div>
+      <div class="form-group"><label class="form-label" for="accountPassword">Password</label><input class="input" id="accountPassword" type="password" minlength="8" autocomplete="new-password" required></div>
+      <p class="section-desc" id="accountError" role="alert"></p>
+      <div class="modal-btns"><button class="btn btn-ghost" type="button" onclick="closeModal()">Later</button><button class="btn btn-p" type="submit">Create account</button></div>
+    </form>
+    <div class="modal-btns" style="margin-top:12px"><button class="btn btn-ghost" onclick="showSignInModal()">I already have an account</button><button class="btn btn-ghost" onclick="showVaultModal()">Use old recovery code</button></div>`);
+}
+function showSignInModal(){
+  showModal(`<div class="modal-title">Sign in</div>
+    <p class="section-desc">Use the same account on every device to open your saved lessons and progress. Any different local lessons on this device stay in their previous cloud backup.</p>
+    <form onsubmit="submitAccount(event,'login')">
+      <div class="form-group"><label class="form-label" for="accountEmail">Email</label><input class="input" id="accountEmail" type="email" autocomplete="email" required></div>
+      <div class="form-group"><label class="form-label" for="accountPassword">Password</label><input class="input" id="accountPassword" type="password" autocomplete="current-password" required></div>
+      <p class="section-desc" id="accountError" role="alert"></p>
+      <div class="modal-btns"><button class="btn btn-ghost" type="button" onclick="showAccountModal()">Back</button><button class="btn btn-p" type="submit">Sign in</button></div>
+    </form>`);
+}
+async function submitAccount(event,action){
+  event.preventDefault();
+  const email=$('#accountEmail')?.value||'',password=$('#accountPassword')?.value||'';
+  const button=event.submitter||event.target.querySelector('button[type="submit"]');
+  if(button)button.disabled=true;
+  try{
+    await CloudVault.signIn(action,email,password);
+    if(!CloudVault.account)throw new Error('Sign-in could not be confirmed. Try again.');
+    closeModal();toast(CloudVault.dirty?'Signed in. Cloud save is pending.':'Your account is connected.');
+  }catch(error){const el=$('#accountError');if(el)el.textContent=error.message||'Could not sign in.';}
+  finally{if(button)button.disabled=false;}
+}
+async function signOutAccount(){
+  try{await CloudVault.signOut();}
+  catch(error){toast(error.message||'Could not sign out.');}
+}
 function showVaultModal(){
+  if(CloudVault.account){showAccountModal();return;}
   const code=CloudVault.hasKey()?CloudVault.format(CloudVault.key):'';
   showModal(`<div class="modal-title">Cloud backup</div>
     <p class="section-desc">Your words and progress are saved online when the status says <b>Cloud saved</b>. Keep this recovery code somewhere safe to open the same data on another device. Anyone with the code can access this data.</p>
@@ -2585,11 +2634,16 @@ function confirmVaultRestore(){
 }
 async function showVaultConflictChoices(){
   try{
-    pendingVaultRestore=await CloudVault.preview(CloudVault.key);
+    pendingVaultRestore=await CloudVault.previewCurrent();
     showModal(`<div class="modal-title">Choose which data to keep</div>
-      <p class="section-desc">The cloud has a newer version. You can load it here, or keep this browser's current data in a separate cloud backup with a new recovery code. Copy your current code first if you need the older backup.</p>
-      <div class="modal-btns"><button class="btn btn-ghost" onclick="forkVaultBackup()">Keep local in new backup</button><button class="btn btn-p" onclick="confirmVaultRestore()">Load latest cloud data</button></div>`);
+      <p class="section-desc">The cloud has a newer version. ${CloudVault.account?'Keeping this device will replace the newer cloud copy.':'Keeping this device creates a separate backup.'} Choose which copy to keep.</p>
+      <div class="modal-btns"><button class="btn btn-ghost" onclick="${CloudVault.account?'keepLocalAccountData()':'forkVaultBackup()'}">${CloudVault.account?'Keep this device’s data':'Keep local in new backup'}</button><button class="btn btn-p" onclick="confirmVaultRestore()">Load latest cloud data</button></div>`);
   }catch(error){toast(error.message||'Could not load cloud data');}
+}
+async function keepLocalAccountData(){
+  if(!pendingVaultRestore)return;
+  await CloudVault.keepLocal(pendingVaultRestore);pendingVaultRestore=null;
+  showAccountModal();toast(CloudVault.dirty?'Cloud save is pending.':'This device’s data was saved.');
 }
 async function forkVaultBackup(){
   await CloudVault.fork();pendingVaultRestore=null;
