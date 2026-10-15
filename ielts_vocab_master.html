@@ -2604,7 +2604,12 @@ async function submitAccount(event,action){
   try{
     await CloudVault.signIn(action,email,password);
     if(!CloudVault.account)throw new Error('Sign-in could not be confirmed. Try again.');
-    closeModal();toast(CloudVault.dirty?'Signed in. Cloud save is pending.':'Your account is connected.');
+    closeModal();
+    // Cloud restore can defer painting while the login field has focus.
+    // Render the loaded account immediately after closing that form.
+    currentDayId=null;currentGroupId=null;activity=null;
+    updateTopStats();switchMainTab(currentMainTab);
+    toast(CloudVault.dirty?'Signed in. Changes on this device are waiting to upload.':CloudVault.lastStatus?.kind==='error'?'Signed in, but cloud loading failed. Open your account to retry.':'Your account is connected.');
   }catch(error){const el=$('#accountError');if(el)el.textContent=error.message||'Could not sign in.';}
   finally{if(button)button.disabled=false;}
 }
@@ -4595,7 +4600,14 @@ async function saveBulkImport(){
     if(!isImportReady(word)||seen.has(key))continue;
     seen.add(key);delete word.duplicate;delete word.confidence;delete word.needsReview;accepted.push(word);
   }
-  d.words.push(...accepted);await save();closeModal();renderDay();toast(`${accepted.length} items imported`);
+  d.words.push(...accepted);await save();closeModal();renderDay();
+  toast(`${accepted.length} items saved on this device. Syncing…`);
+  await CloudVault.flush();
+  if(CloudVault.account&&!CloudVault.dirty&&!CloudVault.conflict&&CloudVault.lastStatus?.kind==='cloud'){
+    toast(`${accepted.length} items imported and saved to your account.`);
+  }else{
+    toast(`${accepted.length} items kept on this device. Open your account to finish syncing before using another device.`);
+  }
 }
 function extractBalancedJson(text,startChar,endChar){
   const start=text.indexOf(startChar);if(start<0)return null;
