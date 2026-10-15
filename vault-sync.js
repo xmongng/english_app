@@ -84,11 +84,16 @@
     identity(){return this.mode==='account'?this.account?.id:this.key;},
     rememberBase(data){
       this.base=data;
-      try{root.sessionStorage?.setItem('ivSyncBase',JSON.stringify({identity:this.identity(),etag:this.etag,snapshot:data}));}catch{}
+      const saved=JSON.stringify({identity:this.identity(),etag:this.etag,snapshot:data});
+      try{root.sessionStorage?.setItem('ivSyncBase',saved);}catch{}
+      // A reopened tab must retain the common ancestor needed for a safe merge.
+      try{localStorage.setItem('ivSyncBase:'+this.identity(),saved);}catch{}
     },
     restoreBase(){
       this.base=null;
-      try{const saved=JSON.parse(root.sessionStorage?.getItem('ivSyncBase')||'null');if(saved?.identity===this.identity()&&saved.etag===this.etag)this.base=saved.snapshot;}catch{}
+      for(const read of [()=>root.sessionStorage?.getItem('ivSyncBase'),()=>localStorage.getItem('ivSyncBase:'+this.identity())]){
+        try{const saved=JSON.parse(read()||'null');if(saved?.identity===this.identity()&&saved.etag===this.etag){this.base=saved.snapshot;return;}}catch{}
+      }
     },
     rememberRecovery(data){
       if(this.mode!=='account'||!data.days?.length)return;
@@ -137,8 +142,9 @@
       });
       if(typeof root.setInterval==='function')this.pollTimer=root.setInterval(sync,15000);
     },
+    syncConflictMessage(){return this.base?'Your changes are saved on this device but overlap with cloud changes. Combine vocabulary or review the conflict before uploading.':'Your changes are saved on this device. The previous synced version is unavailable, so automatic merging is paused. Use Combine vocabulary from this device to keep the vocabulary from both copies.';},
     mergeRemote(remote){
-      if(!this.base||!remote.exists)return false;
+      if(!this.base||!remote.exists){this.rememberRecovery(snapshot());return false;}
       const result=mergeSnapshots(this.base,snapshot(),remote.snapshot);
       if(result.conflicts.length){this.rememberRecovery(snapshot());return false;}
       apply(result.snapshot);this.etag=remote.etag;localStorage.setItem(this.etagStorageKey(),this.etag);
@@ -158,6 +164,7 @@
       if(this.dirty)throw new Error('Wait until your changes are saved before signing out.');
       await accountRequest('logout');
       localStorage.removeItem('ivSyncRecovery:'+this.identity());
+      localStorage.removeItem('ivSyncBase:'+this.identity());
       try{root.sessionStorage?.removeItem('ivSyncBase');}catch{}
       try{root.sessionStorage?.removeItem('ivSyncRecovery');}catch{}
       for(const key of [...Object.values(K),KEY,ETAG,DIRTY,ACCOUNT_ID,ACCOUNT_ETAG,ACCOUNT_DIRTY])localStorage.removeItem(key);
@@ -236,7 +243,7 @@
           this.queue(0);await this.flush();return;
         }
         if(this.dirty){
-          if(this.etag!==remote.etag&&!this.mergeRemote(remote)){this.rememberRecovery(snapshot());this.conflict=true;this.status('error','Sync conflict');return;}
+          if(this.etag!==remote.etag&&!this.mergeRemote(remote)){this.rememberRecovery(snapshot());this.conflict=true;this.lastError=this.syncConflictMessage();this.status('error','Sync conflict');return;}
           this.conflict=false;
           await this.flush();return;
         }
@@ -292,7 +299,7 @@
           if(this.revision===version&&equal(snapshot(),body.snapshot)){this.dirty=false;localStorage.removeItem(this.dirtyStorageKey());this.status('cloud','Cloud saved');}
         }catch(error){
           this.lastError=error.message;
-          if(error.status===409){this.conflict=true;this.status('error','Sync conflict');}
+          if(error.status===409){this.rememberRecovery(snapshot());this.conflict=true;this.lastError=this.syncConflictMessage();this.status('error','Sync conflict');}
           else if(error.status===401){this.mode='signedout';this.account=null;this.status('local','Sign in to sync');}
           else {this.status('error','Cloud issue');this.timer=setTimeout(()=>{this.timer=null;this.flush();},30000);}
         }finally{

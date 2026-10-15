@@ -120,3 +120,12 @@ test('recovery survives a new tab session and combines after a reload',async()=>
  await b.vault.combineVocabulary();assert.ok(app.cloud().days.some(x=>x.id==='unsaved'));
  assert.equal(b.values.has('ivSyncRecovery:'+b.vault.identity()),false);
 });
+
+test('importing in a reopened tab merges cloud changes using the saved baseline',async()=>{
+ const app=setup(),a=app.device(),b=app.device();await a.start();await b.start();
+ a.add(lesson('pending-import','tea'));clearTimeout(a.vault.timer);a.vault.timer=null;
+ b.add(lesson('other-device','bread'));await b.vault.flush();
+ const reopened=app.device(a.values);await reopened.start();
+ assert.equal(reopened.vault.conflict,false);assert.equal(reopened.vault.dirty,false);
+ assert.deepEqual(app.cloud().days.map(x=>x.id).sort(),['first','other-device','pending-import']);
+});

@@ -61,7 +61,7 @@ export function createVaultHandler(storage = { get, put }) {
       return res.status(200).json({ saved: true, etag: saved.etag, updatedAt: new Date().toISOString() });
     } catch (error) {
       if (error instanceof BlobPreconditionFailedError || error?.name === 'BlobAlreadyExistsError' || error?.name === 'BlobPreconditionFailedError') {
-        return res.status(409).json({ error: 'Cloud data changed on another device. Reload the cloud copy before saving again.' });
+        return res.status(409).json({ error: 'The cloud revision changed since this copy was loaded. Keep local changes and merge with the latest cloud revision before retrying.' });
       }
       console.error('Vault storage failed', error?.name || 'Error');
       return res.status(503).json({ error: 'Cloud storage is temporarily unavailable. Local data was kept.' });
