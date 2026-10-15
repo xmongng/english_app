@@ -10,7 +10,8 @@ const lesson=(id,en)=>({id,name:id,words:[{en,vi:'nghĩa',example:`I use ${en} e
 async function account(action,email,password,snapshot){
  const res=await fetch(`${base}/api/account`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,email,password,snapshot})});
  assert.ok(res.ok,`Account HTTP ${res.status}`);
- return res.headers.getSetCookie().find(x=>x.startsWith('iv_session='))?.split(';')[0];
+ const cookie=res.headers.getSetCookie().find(x=>x.startsWith('iv_session='))?.split(';')[0];
+ assert.ok(cookie,'Session cookie was not issued.');return cookie;
 }
 function client(cookie,values=new Map()){
  const listeners={},session=new Map();let view=[];
@@ -27,8 +28,8 @@ function client(cookie,values=new Map()){
   addEventListener:(key,fn)=>{listeners[key]=fn;},
   fetch:(path,options={})=>fetch(base+path,{...options,headers:{...options.headers,Cookie:cookie}})});
  vm.runInContext(source,context);c.vault=context.CloudVault;
- c.start=async()=>{await c.vault.init({create:true,onRestore:()=>{view=JSON.parse(values.get('ivDays')||'[]');}});view=JSON.parse(values.get('ivDays')||'[]');};
- c.add=day=>{const days=JSON.parse(values.get('ivDays'));days.push(day);change('ivDays',JSON.stringify(days));c.vault.queue(100000);};
+ c.start=async()=>{await c.vault.init({create:true,onRestore:()=>{view=JSON.parse(values.get('ivDays')||'[]');}});assert.equal(c.vault.mode,'account',JSON.stringify({status:c.vault.lastStatus,error:c.vault.lastError}));view=JSON.parse(values.get('ivDays')||'[]');};
+ c.add=day=>{const days=JSON.parse(values.get('ivDays')||'[]');days.push(day);change('ivDays',JSON.stringify(days));c.vault.queue(100000);};
  c.view=()=>view;return c;
 }
 try{
