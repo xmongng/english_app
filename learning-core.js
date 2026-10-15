@@ -70,9 +70,12 @@
       seen.add(key(item.en));
     }
     // Require known, unambiguous source entries to survive model extraction.
-    const known=parseImport(raw).filter(x=>x.vi&&!x.needsReview&&!x.duplicate);
+    const known=requiredImportEntries(raw);
     for(const item of known)if(!seen.has(key(item.en)))throw new Error('The response omitted a source term.');
     return items;
+  }
+  function requiredImportEntries(raw){
+    return parseImport(raw).filter(x=>x.vi&&!x.needsReview&&!x.duplicate&&x.en&&/[a-z]/i.test(x.en)&&!hasVi(x.en)&&x.en.length<=160);
   }
   function dateKey(date=new Date()){
     if(!Number.isFinite(date.getTime()))return '';
@@ -112,6 +115,6 @@
     }
     return result;
   }
-  const api={mergeActivityDays,clean,cleanWord,key,parseImport,normalizeItem,validateImport,dateKey,studyHabit};
+  const api={mergeActivityDays,clean,cleanWord,key,parseImport,normalizeItem,validateImport,requiredImportEntries,dateKey,studyHabit};
   root.LearningCore=api;if(typeof module!=='undefined')module.exports=api;
 })(globalThis);

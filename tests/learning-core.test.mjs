@@ -25,6 +25,13 @@ test('reject incomplete AI response or omitted clear source term',()=>{
  assert.throws(()=>core.validateImport({items:[{en:'coffee',vi:'cà phê'}]}));
  assert.throws(()=>core.validateImport({items:[{en:'tea',vi:'trà',example:'I drink tea at work.'}]},'**coffee** cà phê'));
 });
+test('ambiguous bilingual notes do not become impossible source-term requirements',()=>{
+ const source='coffee cà phê: a morning drink';
+ const items=core.validateImport({items:[{en:'coffee',vi:'cà phê',example:'I drink coffee before work.'}]},source);
+ assert.equal(items[0].en,'coffee');
+ assert.equal(core.requiredImportEntries(source).length,0);
+ assert.equal(core.requiredImportEntries('**coffee** cà phê').length,1);
+});
 test('streak requires daily goal, survives yesterday, breaks after missed day',()=>{
  const ledger={'2026-10-04':{count:5},'2026-10-05':{count:7},'2026-10-06':{count:5},'2026-10-07':{count:4}};
  assert.equal(core.studyHabit(ledger,[],new Date('2026-10-07T20:00:00')).current,3);

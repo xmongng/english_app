@@ -41,7 +41,7 @@ export default async function handler(req,res){
   const body=req.body||{};const task=Object.hasOwn(ROUTES,body.task)?body.task:'chat';
   if(task==='import'&&(!String(body.text||'').trim()||String(body.text).length>14000))return res.status(400).json({error:'Paste between 1 and 14,000 characters per import request.'});
   if(task!=='import'&&(!Array.isArray(body.messages)||!body.messages.length||JSON.stringify(body.messages).length>90000))return res.status(400).json({error:'Invalid messages.'});
-  const messages=task==='import'?[{role:'system',content:IMPORT_PROMPT},{role:'user',content:JSON.stringify({topic:String(body.topic||'General'),source:body.text,recognizedEntries:core.parseImport(body.text).filter(x=>x.vi&&!x.needsReview&&!x.duplicate).map(x=>({en:x.en,vi:x.vi})),coverageRule:'Include every recognized entry AND any other vocabulary found in source.'})}]:body.messages;
+  const messages=task==='import'?[{role:'system',content:IMPORT_PROMPT},{role:'user',content:JSON.stringify({topic:String(body.topic||'General'),source:body.text,recognizedEntries:core.requiredImportEntries(body.text).map(x=>({en:x.en,vi:x.vi})),coverageRule:'Include every recognized entry AND any other vocabulary found in source.'})}]:body.messages;
   const started=Date.now();
   const availableModels=modelsFor(task);
   const failures=Array.isArray(body.routingFailures)?body.routingFailures.filter(x=>availableModels.includes(x?.model)&&['timeout','truncated','empty_answer','invalid_output','provider_error'].includes(x?.reason)).slice(0,8).map(x=>({model:x.model,reason:x.reason})):[];
