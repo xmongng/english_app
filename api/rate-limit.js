@@ -15,7 +15,10 @@ export async function reserveBlobCall(apiKey, now, storage={get,put}) {
       await storage.put(key,JSON.stringify({nextAt:now+INTERVAL_MS}),{access:'private',contentType:'application/json',cacheControlMaxAge:60,...(current?{allowOverwrite:true,ifMatch:current.blob.etag}:{})});
       return {allowed:true,retryAfter:0};
     }catch(error){
-      if(!['BlobPreconditionFailedError','BlobAlreadyExistsError'].includes(error?.name))throw error;
+      if(!['BlobPreconditionFailedError','BlobAlreadyExistsError'].includes(error?.name)){
+        // A first-write collision may be reported as a generic SDK error.
+        if(current||!await storage.get(key,{access:'private',useCache:false}))throw error;
+      }
     }
   }
   return {allowed:false,retryAfter:15};

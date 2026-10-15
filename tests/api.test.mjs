@@ -75,7 +75,7 @@ test('private storage gate coordinates concurrent serverless instances',async()=
   async get(_key,options){assert.equal(options.useCache,false);return row?{stream:new Response(row.body).body,blob:{etag:row.etag}}:null;},
   async put(key,body,options){
    assert.ok(!key.includes('private-key'));
-   if(row&&(!options.ifMatch||options.ifMatch!==row.etag)){const error=new Error('Conflict');error.name='BlobPreconditionFailedError';throw error;}
+   if(row&&(!options.ifMatch||options.ifMatch!==row.etag)){const error=new Error('Conflict');error.name=options.ifMatch?'BlobPreconditionFailedError':'BlobError';throw error;}
    row={body,etag:String(++version)};
   }
  };
