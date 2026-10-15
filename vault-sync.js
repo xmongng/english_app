@@ -18,6 +18,18 @@
     const cloudDay=remote.days.find(x=>x.id===day.id);
     return !cloudDay||(day.words||[]).some(word=>!(cloudDay.words||[]).some(x=>vocabKey(x.en)===vocabKey(word.en)));
   });
+  // Recovery is additive: retain every lesson/word without replacing newer local edits.
+  function addVocabulary(target,source){
+    for(const localDay of source.days||[]){
+      const day=target.days.find(x=>x.id===localDay.id);
+      if(!day){target.days.push(localDay);continue;}
+      const known=new Set((day.words||[]).map(x=>vocabKey(x.en)));
+      day.words=day.words||[];
+      for(const word of localDay.words||[])if(!known.has(vocabKey(word.en))){day.words.push(word);known.add(vocabKey(word.en));}
+    }
+    target.customTopics=[...new Set([...(target.customTopics||[]),...(source.customTopics||[])])];
+    return target;
+  }
   const object=value=>value&&typeof value==='object'&&!Array.isArray(value);
   function mergeSnapshots(base,local,remote){
     const conflicts=[];
@@ -80,27 +92,26 @@
     },
     rememberRecovery(data){
       if(this.mode!=='account'||!data.days?.length)return;
-      if(this.recovery?.identity===this.identity())return;
-      this.recovery={identity:this.identity(),snapshot:data};
+      const preserved=JSON.parse(JSON.stringify(data));
+      if(this.recovery?.identity===this.identity())addVocabulary(preserved,this.recovery.snapshot);
+      this.recovery={identity:this.identity(),snapshot:preserved};
+      try{localStorage.setItem('ivSyncRecovery:'+this.identity(),JSON.stringify(this.recovery));}catch{}
       try{root.sessionStorage?.setItem('ivSyncRecovery',JSON.stringify(this.recovery));}catch{}
     },
     async combineVocabulary(){
       if(!this.account)throw new Error('Sign in before combining vocabulary.');
-      const source=this.recovery?.snapshot||snapshot();
+      const identity=this.identity();
+      if(this.inFlight)await this.inFlight;
       const remote=await this.previewCurrent();
-      const merged=JSON.parse(JSON.stringify(remote.snapshot));
-      for(const localDay of source.days){
-        const day=merged.days.find(x=>x.id===localDay.id);
-        if(!day){merged.days.push(localDay);continue;}
-        const known=new Set((day.words||[]).map(x=>vocabKey(x.en)));
-        day.words=day.words||[];
-        for(const word of localDay.words||[])if(!known.has(vocabKey(word.en))){day.words.push(word);known.add(vocabKey(word.en));}
-      }
-      merged.customTopics=[...new Set([...merged.customTopics,...source.customTopics])];
+      if(this.identity()!==identity)throw new Error('Account changed. Please sync again.');
+      // Read local data after the request: imports may finish while it is loading.
+      const current=snapshot();this.rememberRecovery(current);
+      const merged=addVocabulary(JSON.parse(JSON.stringify(current)),remote.snapshot);
+      if(this.recovery)addVocabulary(merged,this.recovery.snapshot);
       this.etag=remote.etag;localStorage.setItem(this.etagStorageKey(),this.etag);this.rememberBase(remote.snapshot);
       apply(merged);this.conflict=false;this.restoreView();this.queue(0);await this.flush();
       if(this.dirty)throw new Error('The combined vocabulary is kept locally. Cloud saving is still pending.');
-      this.recovery=null;try{root.sessionStorage?.removeItem('ivSyncRecovery');}catch{}
+      this.recovery=null;try{root.sessionStorage?.removeItem('ivSyncRecovery');localStorage.removeItem('ivSyncRecovery:'+this.identity());}catch{}
     },
     restoreView(){this.onRestore?.();this.lastLocal=JSON.stringify(snapshot());},
     startLive(){
@@ -146,6 +157,7 @@
       await this.flush();
       if(this.dirty)throw new Error('Wait until your changes are saved before signing out.');
       await accountRequest('logout');
+      localStorage.removeItem('ivSyncRecovery:'+this.identity());
       try{root.sessionStorage?.removeItem('ivSyncBase');}catch{}
       try{root.sessionStorage?.removeItem('ivSyncRecovery');}catch{}
       for(const key of [...Object.values(K),KEY,ETAG,DIRTY,ACCOUNT_ID,ACCOUNT_ETAG,ACCOUNT_DIRTY])localStorage.removeItem(key);
@@ -172,7 +184,7 @@
         this.mode='account';this.account=session;this.key='';
         const sameAccount=localStorage.getItem(ACCOUNT_ID)===session.id;
         this.canRecoverLocal=sameAccount;this.recovery=null;
-        try{const saved=JSON.parse(root.sessionStorage?.getItem('ivSyncRecovery')||'null');if(saved?.identity===session.id)this.recovery=saved;}catch{}
+        try{const saved=JSON.parse(localStorage.getItem('ivSyncRecovery:'+session.id)||root.sessionStorage?.getItem('ivSyncRecovery')||'null');if(saved?.identity===session.id)this.recovery=saved;}catch{}
         this.etag=sameAccount?localStorage.getItem(ACCOUNT_ETAG)||null:null;
         this.dirty=sameAccount&&localStorage.getItem(ACCOUNT_DIRTY)==='1';
         if(!sameAccount){localStorage.removeItem(ACCOUNT_ETAG);localStorage.removeItem(ACCOUNT_DIRTY);}
@@ -211,7 +223,13 @@
         const sharedEtag=localStorage.getItem(this.etagStorageKey())||null;
         if(sharedEtag!==this.etag){this.etag=sharedEtag;this.dirty=localStorage.getItem(this.dirtyStorageKey())==='1';this.restoreBase();}
         if(this.lastLocal&&this.lastLocal!==JSON.stringify(snapshot()))this.restoreView();
+        const read={identity:this.identity(),revision:this.revision,etag:this.etag,local:JSON.stringify(snapshot())};
         const remote=await request('GET',this.mode==='account'?null:this.key);
+        // A completed save or a new import invalidates an older cloud response.
+        if(read.identity!==this.identity()||read.revision!==this.revision||read.etag!==this.etag||read.local!==JSON.stringify(snapshot())||this.inFlight){
+          if(this.dirty&&!this.conflict)await this.flush();
+          return;
+        }
         if(remote.account&&remote.account.id!==this.account?.id){await this.init({create:false,skipRefresh:true});return this.refreshNow();}
         if(!remote.exists){
           if(this.etag){this.conflict=true;this.status('error','Cloud issue');return;}
@@ -236,8 +254,10 @@
       if(this.mode==='signedout'){
         this.dirty=true;localStorage.setItem(ACCOUNT_DIRTY,'1');this.status('local','Sign in to sync');return;
       }
-      if(!this.canSync()||this.conflict)return;
-      this.revision++;this.dirty=true;localStorage.setItem(this.dirtyStorageKey(),'1');this.status('local','Saving…');
+      if(!this.canSync())return;
+      this.revision++;this.dirty=true;localStorage.setItem(this.dirtyStorageKey(),'1');
+      if(this.conflict){this.rememberRecovery(snapshot());this.status('error','Sync conflict');return;}
+      this.status('local','Saving…');
       if(this.timer)clearTimeout(this.timer);
       this.timer=setTimeout(()=>{this.timer=null;this.flush();},delay);
     },
@@ -269,7 +289,7 @@
           if(this.identity()!==identity)return;
           this.etag=saved.etag;localStorage.setItem(this.etagStorageKey(),this.etag);
           this.rememberBase(body.snapshot);
-          if(this.revision===version){this.dirty=false;localStorage.removeItem(this.dirtyStorageKey());this.status('cloud','Cloud saved');}
+          if(this.revision===version&&equal(snapshot(),body.snapshot)){this.dirty=false;localStorage.removeItem(this.dirtyStorageKey());this.status('cloud','Cloud saved');}
         }catch(error){
           this.lastError=error.message;
           if(error.status===409){this.conflict=true;this.status('error','Sync conflict');}

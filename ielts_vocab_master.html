@@ -2571,7 +2571,7 @@ function showAccountModal(){
     showModal(`<div class="modal-title">Your learning account</div>
       <p class="section-desc">Signed in as <b>${esc(CloudVault.account.email)}</b>. Your vocabulary and progress sync across devices when the status says <b>Cloud saved</b>.</p>
       <p class="section-desc">Status: <b>${esc(CloudVault.lastStatus?.label||'Checking…')}</b>${CloudVault.lastError?' · '+esc(CloudVault.lastError):''}</p>
-      ${CloudVault.recovery||CloudVault.conflict?'<p class="section-desc">A local copy is available on this device. You can add its missing lessons and words to the cloud, keeping the cloud’s existing edits and progress.</p><button class="btn btn-ghost" onclick="combineAccountVocabulary()">Combine vocabulary from this device</button>':''}
+      ${CloudVault.recovery||CloudVault.conflict?'<p class="section-desc">A local copy is available on this device. Combine the current device data, recovery copy, and cloud vocabulary. Your current edits and progress are kept.</p><button class="btn btn-ghost" onclick="combineAccountVocabulary()">Combine vocabulary from this device</button>':''}
       ${CloudVault.conflict?'<p class="section-desc">Changes on this device conflict with a newer cloud copy.</p><button class="btn btn-ghost" onclick="showVaultConflictChoices()">Resolve sync conflict</button>':''}
       <div class="modal-btns"><button class="btn btn-ghost" onclick="signOutAccount()">Sign out</button><button class="btn btn-p" onclick="CloudVault.refresh().then(()=>showAccountModal())">Sync now</button></div>`);
     return;

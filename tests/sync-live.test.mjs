@@ -9,11 +9,12 @@ const lesson=(id,word)=>({id,name:id,words:[{en:word,vi:'nghĩa',example:`I use 
 const initial=()=>({schema:1,days:[lesson('first','coffee')],stats:{xp:0},errors:[],mistakes:[],logs:[],progress:{},customTopics:[]});
 function setup(){
  let cloud=initial(),version=1,signedIn=true;const clients=[];
+ let holdRead=null;
  const account={id:'c'.repeat(64),email:'test@example.invalid'};
  const fetch=async(url,options={})=>{
   if(url==='/api/account')return {ok:true,json:async()=>({account:signedIn?account:null})};
   if(!signedIn)return {ok:false,status:401,json:async()=>({error:'Sign in again.'})};
-  if(options.method==='GET')return {ok:true,json:async()=>({exists:true,snapshot:copy(cloud),etag:String(version),account})};
+  if(options.method==='GET'){const data={exists:true,snapshot:copy(cloud),etag:String(version),account};const pending=holdRead;holdRead=null;if(pending){pending.started();await pending.wait;}return {ok:true,json:async()=>data};}
   const body=JSON.parse(options.body);
   if(body.etag!==String(version))return {ok:false,status:409,json:async()=>({error:'Stale copy'})};
   cloud=copy(body.snapshot);version++;
@@ -37,7 +38,7 @@ function setup(){
   client.add=day=>{const days=JSON.parse(values.get('ivDays'));days.push(day);localStorage.setItem('ivDays',JSON.stringify(days));client.vault.queue(100000);};
   client.view=()=>view;return client;
  }
- return {device,cloud:()=>copy(cloud),signIn:value=>{signedIn=value;}};
+ return {holdRead(){let release,started;const wait=new Promise(r=>release=r),ready=new Promise(r=>started=r);holdRead={wait,started};return {ready,release};},device,cloud:()=>copy(cloud),signIn:value=>{signedIn=value;}};
 }
 test('another Chrome tab refreshes its displayed lessons from shared storage',async()=>{
  const app=setup(),storage=new Map(),a=app.device(storage),b=app.device(storage);
@@ -89,4 +90,33 @@ test('legacy local vocabulary is kept in a recovery copy and can be added to the
  await a.vault.combineVocabulary();
  assert.deepEqual(app.cloud().days.map(x=>x.id).sort(),['first','mac-mini-only']);
  assert.equal(a.vault.dirty,false);assert.equal(a.vault.recovery,null);
+});
+
+test('a delayed cloud read cannot roll back an import saved while it was loading',async()=>{
+ const app=setup(),a=app.device();await a.start();
+ const pending=app.holdRead(),refresh=a.vault.refresh();await pending.ready;
+ a.add(lesson('new-import','tea'));await a.vault.flush();
+ pending.release();await refresh;
+ assert.ok(JSON.parse(a.values.get('ivDays')).some(x=>x.id==='new-import'));
+ assert.equal(a.vault.etag,'2');assert.equal(a.vault.dirty,false);
+});
+test('imports made during a conflict remain pending and combine keeps both current and recovery lessons',async()=>{
+ const app=setup(),a=app.device();await a.start();
+ a.vault.rememberRecovery({...initial(),days:[lesson('recovered','bread')]});
+ a.vault.conflict=true;a.add(lesson('new-import','tea'));
+ assert.equal(a.vault.dirty,true);
+ const pending=app.holdRead(),combine=a.vault.combineVocabulary();await pending.ready;
+ a.add(lesson('during-sync','milk'));pending.release();await combine;
+ assert.deepEqual(app.cloud().days.map(x=>x.id).sort(),['during-sync','first','new-import','recovered']);
+ assert.equal(a.vault.dirty,false);
+});
+
+test('recovery survives a new tab session and combines after a reload',async()=>{
+ const app=setup(),a=app.device();await a.start();
+ a.add(lesson('unsaved','tea'));a.vault.rememberRecovery(JSON.parse(JSON.stringify({...initial(),days:JSON.parse(a.values.get('ivDays'))})));
+ clearTimeout(a.vault.timer);a.vault.timer=null;
+ const b=app.device(a.values);await b.start();
+ assert.ok(b.vault.recovery.snapshot.days.some(x=>x.id==='unsaved'));
+ await b.vault.combineVocabulary();assert.ok(app.cloud().days.some(x=>x.id==='unsaved'));
+ assert.equal(b.values.has('ivSyncRecovery:'+b.vault.identity()),false);
 });
