@@ -115,7 +115,7 @@
       if(this.recovery)addVocabulary(merged,this.recovery.snapshot);
       this.etag=remote.etag;localStorage.setItem(this.etagStorageKey(),this.etag);this.rememberBase(remote.snapshot);
       apply(merged);this.conflict=false;this.restoreView();this.queue(0);await this.flush();
-      if(this.dirty)throw new Error('The combined vocabulary is kept locally. Cloud saving is still pending.');
+      if(this.dirty)throw new Error('The combined vocabulary is kept locally. '+(this.lastError||'Cloud saving is still pending.'));
       this.recovery=null;try{root.sessionStorage?.removeItem('ivSyncRecovery');localStorage.removeItem('ivSyncRecovery:'+this.identity());}catch{}
     },
     restoreView(){this.onRestore?.();this.lastLocal=JSON.stringify(snapshot());},

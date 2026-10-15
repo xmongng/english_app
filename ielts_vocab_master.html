@@ -2619,7 +2619,7 @@ async function signOutAccount(){
 }
 async function combineAccountVocabulary(){
   try{await CloudVault.combineVocabulary();showAccountModal();toast('Vocabulary combined and saved.');}
-  catch(error){toast(error.message||'Could not combine vocabulary.');}
+  catch(error){showAccountModal();toast(error.message||'Could not combine vocabulary.');}
 }
 function showVaultModal(){
   if(CloudVault.account){showAccountModal();return;}

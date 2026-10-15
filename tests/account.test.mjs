@@ -7,7 +7,7 @@ const sample={schema:1,days:[{id:'lesson-1',words:[{en:'coffee',vi:'cà phê'}]}
 function fakeStorage(){
   const rows=new Map();let version=0;
   return {
-    async get(path){const row=rows.get(path);return row?{blob:{etag:row.etag,size:row.body.length},stream:new Response(row.body).body}:null;},
+    async get(path,options){const row=rows.get(path);return row?{blob:{etag:options?.headers?.['Accept-Encoding']==='identity'?row.etag:'W/'+row.etag,size:row.body.length},stream:new Response(row.body).body}:null;},
     async put(path,body,options){const row=rows.get(path);
       if(row&&!options.allowOverwrite){const error=new Error('Exists');error.name='BlobAlreadyExistsError';throw error;}
       if(row&&options.ifMatch!==row.etag){const error=new Error('Stale');error.name='BlobPreconditionFailedError';throw error;}

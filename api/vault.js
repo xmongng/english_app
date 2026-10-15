@@ -39,7 +39,9 @@ export function createVaultHandler(storage = { get, put }) {
         if (originHost !== req.headers.host) return res.status(403).json({ error: 'Invalid request origin.' });
       }
       if (req.method === 'GET') {
-        const result = await storage.get(path, { access: 'private', useCache: false });
+        // Preserve the storage ETag: compressed downloads can expose a weak ETag
+        // which is not valid for the conditional put() used to save this snapshot.
+        const result = await storage.get(path, { access: 'private', useCache: false, headers: { 'Accept-Encoding': 'identity' } });
         const account=session?{id:session.id,email:session.record.email}:null;
         if (!result) return res.status(200).json({ exists: false, snapshot: null, etag: null, account });
         if (result.blob?.size > MAX_BYTES) return res.status(413).json({ error: 'Saved data exceeds the supported size.' });

@@ -34,7 +34,7 @@ const cookieValue = (record, id, now = Date.now()) => {
 const cookieHeader = (value, clear = false) => `${COOKIE}=${value}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${clear ? 0 : SESSION_MS / 1000}`;
 
 async function loadRecord(storage, id) {
-  const result = await storage.get(accountPath(id), { access: 'private', useCache: false });
+  const result = await storage.get(accountPath(id), { access: 'private', useCache: false, headers: { 'Accept-Encoding': 'identity' } });
   if (!result) return null;
   const record = JSON.parse(await new Response(result.stream).text());
   return { record, etag: result.blob.etag };

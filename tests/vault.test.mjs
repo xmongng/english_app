@@ -126,3 +126,25 @@ test('browser account sync restores lessons on a second device without a recover
  assert.equal(cloud.days[0].words[0].en,'tea');
  assert.equal(secondValues.get('ivAccountDirty'),undefined);
 });
+
+test('compressed downloads do not turn fresh vault revisions into false write conflicts',async()=>{
+ const previous=process.env.BLOB_STORE_ID;process.env.BLOB_STORE_ID='store-test';
+ const backing=fakeStorage();
+ const storage={...backing,async get(path,options){
+  const row=await backing.get(path);if(!row)return row;
+  // HTTP compression weakens the download ETag; writes require the original tag.
+  if(options?.headers?.['Accept-Encoding']!=='identity')row.blob.etag='W/'+row.blob.etag;
+  return row;
+ }};
+ const handler=createVaultHandler(storage);
+ const call=async(method,body)=>{const res=response();await handler({method,headers:{authorization:`Vault ${codeA}`},body},res);return res;};
+ try{
+  const created=await call('PUT',{snapshot:content,etag:null});assert.equal(created.statusCode,200);
+  const loaded=await call('GET');assert.equal(loaded.statusCode,200);
+  const updated={...content,days:[...content.days,{id:'imported',words:[{en:'tea',vi:'trà'}]}]};
+  const saved=await call('PUT',{snapshot:updated,etag:loaded.payload.etag});
+  assert.equal(saved.statusCode,200,'A freshly loaded revision must be usable for conditional saving');
+  assert.equal((await call('GET')).payload.etag,saved.payload.etag);
+  assert.equal((await call('PUT',{snapshot:content,etag:loaded.payload.etag})).statusCode,409,'Genuinely stale writes must still fail');
+ }finally{if(previous===undefined)delete process.env.BLOB_STORE_ID;else process.env.BLOB_STORE_ID=previous;}
+});
