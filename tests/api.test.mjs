@@ -5,6 +5,7 @@ import ttsHandler from '../api/tts.js';
 import { reserveNvidiaCall, reserveBlobCall, resetLocalLimiterForTests } from '../api/rate-limit.js';
 import fs from 'node:fs';
 import vm from 'node:vm';
+import { BlobPreconditionFailedError } from '@vercel/blob';
 function response(){return {statusCode:200,headers:{},setHeader(k,v){this.headers[k]=v;},status(s){this.statusCode=s;return this;},json(p){this.payload=p;},end(){}};}
 const valid={items:[{en:'coffee',vi:'cà phê',example:'I drink coffee before work.'}]};
 const completion=(value,finish_reason='stop')=>({ok:true,json:async()=>({choices:[{finish_reason,message:{content:JSON.stringify(value)}}]})});
@@ -75,14 +76,16 @@ test('private storage gate coordinates concurrent serverless instances',async()=
   async get(_key,options){assert.equal(options.useCache,false);return row?{stream:new Response(row.body).body,blob:{etag:row.etag}}:null;},
   async put(key,body,options){
    assert.ok(!key.includes('private-key'));
-   if(row&&(!options.ifMatch||options.ifMatch!==row.etag)){const error=new Error('Conflict');error.name=options.ifMatch?'BlobPreconditionFailedError':'BlobError';throw error;}
+   if(row&&(!options.ifMatch||options.ifMatch!==row.etag))throw options.ifMatch?new BlobPreconditionFailedError():new Error('Already exists');
    row={body,etag:String(++version)};
   }
  };
  const results=await Promise.all([reserveBlobCall('private-key',100_000,storage),reserveBlobCall('private-key',100_000,storage)]);
  assert.equal(results.filter(x=>x.allowed).length,1);
  assert.equal(results.find(x=>!x.allowed).retryAfter,15);
- assert.equal((await reserveBlobCall('private-key',115_000,storage)).allowed,true);
+ const renewed=await Promise.all([reserveBlobCall('private-key',115_000,storage),reserveBlobCall('private-key',115_000,storage)]);
+ assert.equal(renewed.filter(x=>x.allowed).length,1);
+ assert.equal(renewed.find(x=>!x.allowed).retryAfter,15);
 });
 test('shared Redis gate refuses a second instance without exposing the API key',async()=>{
  const previousUrl=process.env.UPSTASH_REDIS_REST_URL,previousToken=process.env.UPSTASH_REDIS_REST_TOKEN,original=globalThis.fetch;
