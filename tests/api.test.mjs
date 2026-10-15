@@ -16,7 +16,7 @@ test('escalates invalid small-model import and sends server key only upstream',a
   const first=response();await handler({method:'POST',body:{task:'import',text:'**coffee** cà phê'}},first);
   assert.equal(first.statusCode,429);assert.equal(first.headers['Retry-After'],'15');assert.equal(first.headers['X-AI-Resume-Model'],'1');assert.equal(calls.length,1);
   now+=15_000;
-  const res=response();await handler({method:'POST',body:{task:'import',text:'**coffee** cà phê',resumeModel:1}},res);assert.equal(res.statusCode,200);assert.equal(calls.length,2);assert.equal(calls[0].model,'openai/gpt-oss-20b');assert.equal(calls[1].model,'nvidia/nemotron-3.5-lightning-30b-a3b');assert.equal(calls[1].chat_template_kwargs.enable_thinking,false);assert.ok(!JSON.stringify(res.payload).includes('test-only'));
+  const res=response();await handler({method:'POST',body:{task:'import',text:'**coffee** cà phê',resumeModel:1}},res);assert.equal(res.statusCode,200);assert.equal(calls.length,2);assert.equal(calls[0].model,'nvidia/nemotron-3.5-lightning-30b-a3b');assert.equal(calls[1].model,'openai/gpt-oss-20b');assert.equal(calls[0].chat_template_kwargs.enable_thinking,false);assert.ok(!JSON.stringify(res.payload).includes('test-only'));
  }
  finally{globalThis.fetch=original;Date.now=clock;if(previous===undefined)delete process.env.NVIDIA_API_KEY;else process.env.NVIDIA_API_KEY=previous;}
 });
@@ -58,6 +58,16 @@ test('a slow failure gives the next model a fresh serverless time budget',async(
   assert.equal(calls,1);assert.equal(res.statusCode,429);assert.equal(res.payload.code,'AI_CONTINUE');
   assert.equal(res.headers['X-AI-Resume-Model'],'1');assert.equal(res.payload.routingFailures[0].reason,'timeout');
  }finally{globalThis.fetch=original;Date.now=clock;if(previous===undefined)delete process.env.NVIDIA_API_KEY;else process.env.NVIDIA_API_KEY=previous;}
+});
+test('a large incomplete import requests adaptive splitting after one model attempt',async()=>{
+ const original=globalThis.fetch,previous=process.env.NVIDIA_API_KEY;
+ process.env.NVIDIA_API_KEY='test-only';resetLocalLimiterForTests();let calls=0;
+ const fixture=JSON.parse(fs.readFileSync(new URL('./fixtures/import-twenty.json',import.meta.url),'utf8'));
+ globalThis.fetch=async(_url,options)=>{calls++;const body=JSON.parse(options.body);assert.equal(body.max_tokens,8192);assert.equal(JSON.parse(body.messages[1].content).recognizedEntries.length,20);return completion(valid);};
+ try{
+  const res=response();await handler({method:'POST',body:{task:'import',text:JSON.stringify(fixture),allowSplit:true}},res);
+  assert.equal(res.statusCode,422);assert.equal(res.payload.code,'AI_SPLIT_BATCH');assert.equal(calls,1);
+ }finally{globalThis.fetch=original;if(previous===undefined)delete process.env.NVIDIA_API_KEY;else process.env.NVIDIA_API_KEY=previous;}
 });
 test('missing server key cannot be replaced by a browser credential',async()=>{
  const a=process.env.NVIDIA_API_KEY,b=process.env.AI_API_KEY;delete process.env.NVIDIA_API_KEY;delete process.env.AI_API_KEY;

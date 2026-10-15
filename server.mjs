@@ -15,6 +15,7 @@ const publicFiles = new Map([
   ['/index.html', 'text/html'], ['/ielts_vocab_master.html', 'text/html'],
   ['/chat_companion.html', 'text/html'], ['/learning-core.js', 'text/javascript'], ['/learning-theme.css', 'text/css'],
   ['/vault-sync.js', 'text/javascript'],
+  ['/import-flow.js', 'text/javascript'],
 ]);
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost');

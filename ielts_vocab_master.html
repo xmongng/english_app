@@ -1068,6 +1068,7 @@
   <div class="toast" id="toast"></div>
 
 <script src="vault-sync.js"></script>
+<script src="import-flow.js"></script>
 <script>
 /* ========== CONFIG ========== */
 const API_PROXY_URL='/api/chat';
@@ -4543,13 +4544,19 @@ async function enhanceBulkWithAI(){
   $('#importPreview').classList.remove('hidden');
   $('#importPreview').textContent='Reading vocabulary and completing missing examples…';
   try{
-    const enhanced=await requestVocabEnhancement(rawText,topic,(batch,total)=>{
-      const preview=$('#importPreview');if(preview)preview.textContent=`Preparing vocabulary: batch ${batch} / ${total}…`;
+    const result=await requestVocabEnhancement(rawText,topic,progress=>{
+      const preview=$('#importPreview');if(preview)preview.textContent=`Preparing up to 20 entries per call. ${progress.completed} ready${progress.depth?' · retrying a smaller group':''}…`;
     });
     if(!$('#bulkText')||source!==JSON.stringify([$('#bulkText').value,$('#bulkTopic').value])){toast('Text changed. Extract again to preview the latest text.');return false;}
-    renderImportPreview(enhanced);toast(`${enhanced.length} items ready to review`);return true;
+    renderImportPreview(result.items);
+    if(result.failed.length){
+      const note=document.createElement('div');note.className='import-item';
+      note.textContent=`${result.items.length} entries ready. ${result.failed.length} group(s) still need attention. Click Extract & complete with AI to retry those groups; completed results are kept. Only checked entries will be saved.`;
+      $('#importPreview').prepend(note);
+    }
+    toast(`${result.items.length} items ready${result.failed.length?' · some groups need retry':''}`);return true;
   }catch(err){
-    if($('#importPreview'))$('#importPreview').textContent=`Import could not be completed: ${err.message}. Nothing was saved. You can retry.`;
+    if($('#importPreview'))$('#importPreview').textContent=`Import preparation paused: ${err.message}. Your pasted text and any completed groups are kept for retry. No lesson data was changed.`;
     return false;
   }finally{
     importBusy=false;if($('#enhanceImportButton'))$('#enhanceImportButton').disabled=false;if($('#saveImportButton'))$('#saveImportButton').disabled=false;
@@ -4740,36 +4747,19 @@ function polishAIReply(reply,userText=''){
   }
   return out;
 }
-function chunkVocabText(rawText,chunkSize=4){
-  try{
-    const json=JSON.parse(rawText);const items=Array.isArray(json)?json:json.items||json.words;
-    if(Array.isArray(items)){const chunks=[];for(let i=0;i<items.length;i+=chunkSize)chunks.push(JSON.stringify(items.slice(i,i+chunkSize)));return chunks;}
-  }catch{}
-  const lines=String(rawText).replace(/<\/tr\s*>/gi,'</tr>\n').split(/\r?\n/);
-  const chunks=[];let group=[],entries=0,heading='';
-  for(const line of lines){
-    if(/^\s*#{1,6}\s/.test(line)){heading=line;continue;}
-    const continuation=/^\s*(?:example|e\.g\.|eg|ví dụ|vd|meaning|nghĩa|translation|vietnamese)\s*[:：-]/i.test(line)||!line.trim();
-    if(!continuation&&entries>=chunkSize){chunks.push([heading,...group].join('\n'));group=[];entries=0;}
-    group.push(line);if(!continuation)entries++;
-  }
-  if(group.some(line=>line.trim()))chunks.push([heading,...group].join('\n'));
-  return chunks;
-}
+function chunkVocabText(rawText,chunkSize=20){return ImportFlow.chunks(rawText,chunkSize);}
 async function requestVocabEnhancementSingleChunk(chunkText,defaultTopic){
-  const res=await fetchAI(JSON.stringify({task:'import',text:chunkText,topic:defaultTopic}),{'Content-Type':'application/json'});
+  const res=await fetchAI(JSON.stringify({task:'import',text:chunkText,topic:defaultTopic,allowSplit:true}),{'Content-Type':'application/json'});
   const data=await res.json();const txt=readAIMessageText(data);
-  return LearningCore.validateImport(parseEnhancedVocabJson(txt),chunkText);
+  try{return LearningCore.validateImport(parseEnhancedVocabJson(txt),chunkText);}
+  catch(error){error.code='AI_UNAVAILABLE';throw error;}
 }
+const vocabImportRunner=ImportFlow.createRunner(requestVocabEnhancementSingleChunk);
 async function requestVocabEnhancement(rawText,defaultTopic,onProgress){
-  const chunks=chunkVocabText(rawText);const items=[];
-  for(let i=0;i<chunks.length;i++){
-    onProgress?.(i+1,chunks.length);
-    items.push(...await requestVocabEnhancementSingleChunk(chunks[i],defaultTopic));
-  }
-  const finalized=finalizeEnhancedItems(items,defaultTopic);
-  if(!finalized.length)throw new Error('No vocabulary detected');
-  return finalized;
+  const result=await vocabImportRunner.run(rawText,defaultTopic,onProgress);
+  const items=finalizeEnhancedItems(result.items,defaultTopic);
+  if(!items.length)throw new Error(result.failed[0]?.message||'No vocabulary detected');
+  return {items,failed:result.failed};
 }
 
 function editWordModal(i){
@@ -5274,6 +5264,13 @@ async function fetchAIRateLimited(url, headers, originalBody) {
 }
 
 // Robust AI fetch: local Vercel serverless proxy (/api/chat) → production proxy
+async function aiResponseError(response){
+  const text=await response.text().catch(()=>'');let details;
+  try{details=JSON.parse(text);}catch{}
+  const error=new Error(`API error ${response.status} — ${details?.error||text.slice(0,160)||'AI service unavailable'}`);
+  error.code=details?.code;error.routingFailures=details?.routingFailures;
+  return error;
+}
 async function fetchAI(body, hdrs) {
   let lastErr;
 
@@ -5283,8 +5280,7 @@ async function fetchAI(body, hdrs) {
     // 404/405 means we're on a plain static server (python3 http.server) — skip gracefully
     if (r.status !== 404 && r.status !== 405) {
       if (r.ok) return r;
-      const t = await r.text().catch(()=>'');
-      throw new Error('API error ' + r.status + (t ? ' — ' + t.slice(0,200) : ''));
+      throw await aiResponseError(r);
     }
   } catch(e) {
     if (e.message && e.message.startsWith('API error')) throw e;
@@ -5295,8 +5291,7 @@ async function fetchAI(body, hdrs) {
   try {
     const r = await fetchAIRateLimited(API_PROXY_URL,hdrs,body);
     if (r.ok) return r;
-    const t = await r.text().catch(()=>'');
-    throw new Error('API error ' + r.status + (t ? ' — ' + t.slice(0,200) : ''));
+    throw await aiResponseError(r);
   } catch(e) {
     if (e.message && e.message.startsWith('API error')) throw e;
     lastErr = e;
