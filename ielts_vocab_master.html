@@ -4740,7 +4740,7 @@ function polishAIReply(reply,userText=''){
   }
   return out;
 }
-function chunkVocabText(rawText,chunkSize=6){
+function chunkVocabText(rawText,chunkSize=4){
   try{
     const json=JSON.parse(rawText);const items=Array.isArray(json)?json:json.items||json.words;
     if(Array.isArray(items)){const chunks=[];for(let i=0;i<items.length;i+=chunkSize)chunks.push(JSON.stringify(items.slice(i,i+chunkSize)));return chunks;}
@@ -5267,6 +5267,8 @@ async function fetchAIRateLimited(url, headers, originalBody) {
     if(importBusy){const preview=$('#importPreview');if(preview)preview.textContent=`AI limit: 4 requests/minute. Continuing import in ${wait} seconds…`;}
     const resume=Number(response.headers.get('X-AI-Resume-Model'));
     if(Number.isInteger(resume)&&resume>=0)requestBody.resumeModel=resume;
+    const routing=typeof response.clone==='function'?await response.clone().json().catch(()=>null):null;
+    if(Array.isArray(routing?.routingFailures))requestBody.routingFailures=routing.routingFailures;
     await new Promise(resolve=>setTimeout(resolve,wait*1000));
   }
 }
