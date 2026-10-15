@@ -32,6 +32,7 @@ export function createVaultHandler(storage = { get, put }) {
       if (!process.env.BLOB_STORE_ID && !process.env.BLOB_READ_WRITE_TOKEN) {
         return res.status(503).json({ error: 'Cloud storage is not configured.' });
       }
+      if(req.method==='PUT'&&req.body?.accountId&&req.body.accountId!==session?.id)return res.status(401).json({error:'The signed-in account changed. Sign in again before saving.'});
       if (req.method === 'PUT' && session && req.headers?.origin) {
         let originHost;
         try { originHost = new URL(req.headers.origin).host; } catch { originHost = null; }
@@ -39,13 +40,14 @@ export function createVaultHandler(storage = { get, put }) {
       }
       if (req.method === 'GET') {
         const result = await storage.get(path, { access: 'private', useCache: false });
-        if (!result) return res.status(200).json({ exists: false, snapshot: null, etag: null });
+        const account=session?{id:session.id,email:session.record.email}:null;
+        if (!result) return res.status(200).json({ exists: false, snapshot: null, etag: null, account });
         if (result.blob?.size > MAX_BYTES) return res.status(413).json({ error: 'Saved data exceeds the supported size.' });
         const body = await new Response(result.stream).text();
         if (Buffer.byteLength(body) > MAX_BYTES) return res.status(413).json({ error: 'Saved data exceeds the supported size.' });
         const snapshot = JSON.parse(body);
         if (!validSnapshot(snapshot)) throw new Error('Invalid stored snapshot');
-        return res.status(200).json({ exists: true, snapshot, etag: result.blob.etag });
+        return res.status(200).json({ exists: true, snapshot, etag: result.blob.etag, account });
       }
       const snapshot = req.body?.snapshot;
       if (!validSnapshot(snapshot)) return res.status(400).json({ error: 'Invalid study data.' });

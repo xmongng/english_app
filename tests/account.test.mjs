@@ -31,6 +31,9 @@ test('account signup moves existing lessons into a private account shared across
     const firstCookie=created.headers['Set-Cookie'].split(';')[0];
     const firstRead=await request(vault,'GET',undefined,firstCookie);
     assert.equal(firstRead.payload.snapshot.days[0].words[0].en,'coffee');
+    assert.equal(firstRead.payload.account.id,created.payload.account.id);
+    const wrongAccount=await request(vault,'PUT',{snapshot:sample,etag:firstRead.payload.etag,accountId:'a'.repeat(64)},firstCookie);
+    assert.equal(wrongAccount.statusCode,401);
     const duplicate=await request(account,'POST',{action:'register',email:'learner@example.com',password:'different password',snapshot:sample});
     assert.equal(duplicate.statusCode,409);
     const login=await request(account,'POST',{action:'login',email:'learner@example.com',password:'a strong password'});

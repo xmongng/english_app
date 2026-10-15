@@ -2513,7 +2513,16 @@ async function initApp(){
   await CloudVault.init({create:true,onRestore:()=>{
     customTopics=safeParse(localStorage.getItem('customTopics'),[]);
     dataService.bootstrapLocal();
-    if(appReady){renderHome();switchMainTab(currentMainTab);}
+    if(appReady){
+      updateTopStats();
+      const editing=document.activeElement?.matches('input,textarea,[contenteditable="true"]');
+      if(activity||editing)return;
+      if(currentMainTab==='learn'){
+        if(currentDayId&&getDay(currentDayId))renderDay();
+        else if(currentGroupId)renderGroup();
+        else renderHome();
+      }else switchMainTab(currentMainTab);
+    }
   },onStatus:(kind,label)=>updateSyncBadge(CloudVault.account?kind:(kind==='error'?'error':'local'),CloudVault.account?label:(kind==='error'?'Backup issue':'Sign in to sync'))});
   appReady=true;
   updateTopStats();
@@ -2539,7 +2548,8 @@ async function initApp(){
     else CloudVault.refresh();
   });
   window.addEventListener('online',()=>CloudVault.refresh());
-  if(CloudVault.mode==='signedout')showSignInModal();
+  if(CloudVault.account&&CloudVault.recovery)showAccountModal();
+  else if(CloudVault.mode==='signedout')showSignInModal();
   else if(CloudVault.mode==='guest'&&!localStorage.getItem('ivAccountPrompted')){
     localStorage.setItem('ivAccountPrompted','1');showAccountModal();
   }
@@ -2560,6 +2570,8 @@ function showAccountModal(){
   if(CloudVault.account){
     showModal(`<div class="modal-title">Your learning account</div>
       <p class="section-desc">Signed in as <b>${esc(CloudVault.account.email)}</b>. Your vocabulary and progress sync across devices when the status says <b>Cloud saved</b>.</p>
+      <p class="section-desc">Status: <b>${esc(CloudVault.lastStatus?.label||'Checking…')}</b>${CloudVault.lastError?' · '+esc(CloudVault.lastError):''}</p>
+      ${CloudVault.recovery||CloudVault.conflict?'<p class="section-desc">A local copy is available on this device. You can add its missing lessons and words to the cloud, keeping the cloud’s existing edits and progress.</p><button class="btn btn-ghost" onclick="combineAccountVocabulary()">Combine vocabulary from this device</button>':''}
       ${CloudVault.conflict?'<p class="section-desc">Changes on this device conflict with a newer cloud copy.</p><button class="btn btn-ghost" onclick="showVaultConflictChoices()">Resolve sync conflict</button>':''}
       <div class="modal-btns"><button class="btn btn-ghost" onclick="signOutAccount()">Sign out</button><button class="btn btn-p" onclick="CloudVault.refresh().then(()=>showAccountModal())">Sync now</button></div>`);
     return;
@@ -2599,6 +2611,10 @@ async function submitAccount(event,action){
 async function signOutAccount(){
   try{await CloudVault.signOut();}
   catch(error){toast(error.message||'Could not sign out.');}
+}
+async function combineAccountVocabulary(){
+  try{await CloudVault.combineVocabulary();showAccountModal();toast('Vocabulary combined and saved.');}
+  catch(error){toast(error.message||'Could not combine vocabulary.');}
 }
 function showVaultModal(){
   if(CloudVault.account){showAccountModal();return;}
