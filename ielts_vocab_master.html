@@ -3774,17 +3774,19 @@ async function markPractice(ok,extra={}){
   const mode=activity==='compose'?`compose:${composeMode}`:(activity||'practice');
   entry.credits=entry.credits||[];
   const creditKey=`${norm(w.en)}|${mode}`;
-  if(entry.credits.includes(creditKey))return false;
-  entry.credits.push(creditKey);entry.count++;
+  const grantsCredit=extra.grantsCredit!==false;
+  if(grantsCredit&&entry.credits.includes(creditKey))return false;
+  if(grantsCredit){entry.credits.push(creditKey);entry.count++;}
   stats.activityDays[dayKey]=entry;
   const scored=activity!=='flash';
   stats.done=(stats.done||0)+1;
   if(scored){stats.total=(stats.total||0)+1;if(ok)stats.correct=(stats.correct||0)+1;}
-  const base=activity==='flash'?(ok?4:2):activity==='compose'?(ok?15:3):(ok?10:2);
+  // Incorrect answers are useful accuracy evidence, but never earn XP.
+  const base=ok?(activity==='flash'?4:activity==='compose'?15:10):0;
   const earned=Math.min(base,Math.max(0,100-(entry.xp||0)));entry.xp=(entry.xp||0)+earned;
   awardXP(earned,'Daily practice');
   updateWordReviewSchedule(w,ok,extra);
-  const payload={dayId:findWordInOriginalDays(w.en)?.day.id||currentDayId,word:w.en,activity:activity||'practice',ok,scored,score:Number.isFinite(extra.score)?extra.score:null,studyDate:dayKey,creditKey,xp:earned,createdAt:now.toISOString(),errorSignature:extra.errorSignature||null,reviewMode:currentDayId==='r:smart'?'smart':'lesson'};
+  const payload={dayId:findWordInOriginalDays(w.en)?.day.id||currentDayId,word:w.en,activity:activity||'practice',ok,scored,score:Number.isFinite(extra.score)?extra.score:null,studyDate:dayKey,creditKey:grantsCredit?creditKey:`${creditKey}|incorrect`,xp:earned,createdAt:now.toISOString(),errorSignature:extra.errorSignature||null,reviewMode:currentDayId==='r:smart'?'smart':'lesson'};
   // Local log and summary are updated synchronously; cloud writes run afterwards.
   const sync=dataService.addPracticeLog(payload);
   stats.streak=calculateStudyHabit().current;
@@ -4060,27 +4062,41 @@ function renderExercise(){
   return h;
 }
 
-/* Post-render event binding */
-const observer=new MutationObserver(()=>{
-  // Recall
+function bindRecallPractice(){
   const recallCheck=$('#recallCheck');
   if(recallCheck&&!recallCheck._bound){
     recallCheck._bound=true;
     const w=curWord();
-    let submitted=false;
-    const check=()=>{
+    let submitted=false,incorrectRecorded=false;
+    const check=async()=>{
       const value=$('#recallIn')?.value?.trim();if(!value||submitted)return;
-      submitted=true;
       const ok=norm(value)===norm(w.en);
-      markPractice(ok).catch(err=>console.warn('Typing sync failed:',err));
       const fb=$('#recallFb');fb.className='feedback '+(ok?'fb-good':'fb-bad');
-      fb.innerHTML=ok?'Correct! Well done.':`Not quite. Answer: <mark>${w.en}</mark>`;
+      if(!ok){
+        if(!incorrectRecorded){
+          incorrectRecorded=true;
+          await markPractice(false,{grantsCredit:false}).catch(err=>console.warn('Typing sync failed:',err));
+        }
+        fb.textContent='Not quite. Check the spelling and try again.';
+        const input=$('#recallIn');if(input){input.select();input.focus();}
+        return;
+      }
+      submitted=true;
+      recallCheck.disabled=true;
+      await markPractice(true).catch(err=>console.warn('Typing sync failed:',err));
+      fb.textContent='Correct! Well done.';
       const expectedDay=currentDayId;const expectedIndex=wIdx;
       setTimeout(()=>{if(currentDayId===expectedDay&&activity==='recall'&&wIdx===expectedIndex)nextW()},1200);
     };
     recallCheck.onclick=check;
     const inp=$('#recallIn');if(inp){inp.focus();inp.onkeydown=e=>{if(e.key==='Enter')check()}}
   }
+}
+
+/* Post-render event binding */
+const observer=new MutationObserver(()=>{
+  // Recall
+  bindRecallPractice();
   // Match
   $$('.quiz-opt[data-ok]').forEach(btn=>{
     if(btn._bound)return;btn._bound=true;

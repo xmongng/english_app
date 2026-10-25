@@ -62,8 +62,18 @@ function scoringSandbox(){
 }
 test('repeated submit/reload credit never inflates points, accuracy or streak count',async()=>{
  const c=scoringSandbox();await vm.runInContext('markPractice(false)',c);await vm.runInContext('markPractice(true)',c);
- assert.equal(c.stats.xp,2);assert.equal(c.stats.total,1);assert.equal(c.stats.correct,0);assert.equal(c.logs.length,1);
+ assert.equal(c.stats.xp,0);assert.equal(c.stats.total,1);assert.equal(c.stats.correct,0);assert.equal(c.logs.length,1);
  assert.equal(Object.values(c.stats.activityDays)[0].count,1);
+});
+test('a wrong typing attempt earns no XP and a later correct retry receives credit',async()=>{
+ const c=scoringSandbox();
+ assert.equal(await vm.runInContext("markPractice(false,{grantsCredit:false})",c),true);
+ assert.equal(c.stats.xp,0);assert.equal(c.stats.total,1);assert.equal(c.stats.correct,0);
+ assert.equal(Object.values(c.stats.activityDays)[0].count,0);
+ assert.equal(await vm.runInContext('markPractice(true)',c),true);
+ assert.equal(c.stats.xp,10);assert.equal(c.stats.total,2);assert.equal(c.stats.correct,1);
+ assert.equal(Object.values(c.stats.activityDays)[0].count,1);
+ assert.equal(c.logs.length,2);assert.equal(c.logs[0].xp,0);assert.equal(c.logs[1].xp,10);
 });
 test('daily XP cap and self-rated flashcards excluded from accuracy',async()=>{
  const c=scoringSandbox();
