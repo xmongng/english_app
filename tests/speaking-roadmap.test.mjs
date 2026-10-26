@@ -6,10 +6,13 @@ import vm from 'node:vm';
 const roadmap=fs.readFileSync(new URL('../SpeakQuest_English_Speaking_Roadmap_v3.html',import.meta.url),'utf8');
 const app=fs.readFileSync(new URL('../ielts_vocab_master.html',import.meta.url),'utf8');
 
-test('speaking roadmap is discoverable as a first-class app tab',()=>{
+test('speaking roadmap opens as a dedicated full page from the main app',()=>{
   assert.match(app,/id="navSpeaking"[\s\S]*Speaking Roadmap/);
-  assert.match(app,/id="pageSpeaking"[\s\S]*SpeakQuest_English_Speaking_Roadmap_v3\.html\?embedded=1/);
-  assert.match(app,/else if \(tab === 'speaking'\)/);
+  assert.match(app,/id="navSpeaking"[^>]+onclick="openSpeakingRoadmap\(\)"/);
+  assert.match(app,/function openSpeakingRoadmap\(\)[\s\S]*SpeakQuest_English_Speaking_Roadmap_v3\.html\?from=app/);
+  assert.doesNotMatch(app,/id="pageSpeaking"|<iframe[^>]+SpeakQuest/);
+  assert.match(roadmap,/id="backToVocabulary"[\s\S]*Back to Vocabulary/);
+  assert.match(roadmap,/backToVocabulary'\)\.onclick=[^;]+ielts_vocab_master\.html/);
 });
 
 test('speaking progress queues account sync and retains checks, completion time, and last location',()=>{
@@ -30,7 +33,13 @@ test('speaking progress queues account sync and retains checks, completion time,
   assert.equal(saved['skill:0-0'],true);assert.equal(queued,1);
 });
 
-test('speaking iframe reloads progress applied by account sync',()=>{
+test('speaking page reloads progress applied by account sync',()=>{
   assert.match(roadmap,/addEventListener\('storage',[\s\S]*event\.key===STORE[\s\S]*reloadSyncedProgress/);
-  assert.match(roadmap,/window\.parent\.CloudVault\.queue\(\)/);
+  assert.match(roadmap,/const vault=window\.parent[\s\S]*vault\?\.queue\(\)/);
+});
+
+test('full-page speaking initializes the same account vault and shows sync status',()=>{
+  assert.match(roadmap,/<script src="vault-sync\.js"><\/script>/);
+  assert.match(roadmap,/CloudVault\.init\(\{create:true,onRestore:reloadSyncedProgress,onStatus:/);
+  assert.match(roadmap,/id="speakingSyncStatus"/);
 });
