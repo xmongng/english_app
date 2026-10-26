@@ -593,6 +593,8 @@
     .main-page-tab.active {
       display: block;
     }
+    .speaking-frame-shell{background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden;box-shadow:var(--shadow);min-height:760px}
+    .speaking-frame{display:block;width:100%;height:calc(100vh - 190px);min-height:760px;border:0;background:#edf7f4}
     .hub-focus-strip{display:grid;grid-template-columns:1.2fr repeat(3,minmax(90px,.6fr));gap:10px;margin-bottom:16px}
     .focus-summary-card,.focus-mini-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-sm)}
     .focus-summary-card{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
@@ -901,6 +903,7 @@
       .week-dots{gap:3px}.week-dot{width:29px;height:29px}
       .pattern-summary-table th:nth-child(3),.pattern-summary-table td:nth-child(3){display:none}
       .smart-practice-stage{margin-top:20px;padding:38px 20px}.smart-practice-actions{flex-direction:column}.smart-practice-actions .btn{width:100%;justify-content:center}
+      .speaking-frame-shell,.speaking-frame{min-height:680px}.speaking-frame{height:calc(100dvh - 145px)}
     }
 
     /* Learning workspace: compact hierarchy and focused practice */
@@ -976,8 +979,8 @@
       <div class="workspace-heading">
         <div>
           <div class="workspace-eyebrow">Personal learning workspace</div>
-          <h1>Vocabulary Groups</h1>
-          <p>Study by topic, strengthen weak vocabulary, and understand your progress.</p>
+          <h1 id="workspaceTitle">Vocabulary Groups</h1>
+          <p id="workspaceDescription">Study by topic, strengthen weak vocabulary, and understand your progress.</p>
         </div>
         <div class="workspace-summary" id="workspaceSummary">Your learning data is loading…</div>
       </div>
@@ -989,6 +992,10 @@
         <button class="nav-tab" id="navReview" role="tab" aria-selected="false" onclick="switchMainTab('review')">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"></path><path d="M12 6v6l4 2"></path></svg>
           <span>Smart Review</span>
+        </button>
+        <button class="nav-tab" id="navSpeaking" role="tab" aria-selected="false" onclick="switchMainTab('speaking')">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path><path d="M8 9h8M8 13h5"></path></svg>
+          <span>Speaking Roadmap</span>
         </button>
         <button class="nav-tab" id="navProgress" role="tab" aria-selected="false" onclick="switchMainTab('progress')">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
@@ -1025,12 +1032,17 @@
       <div id="smartReviewTabContent"></div>
     </div>
 
-    <!-- TAB 3: PROGRESS & ANALYTICS -->
+    <!-- TAB 3: SPEAKING ROADMAP -->
+    <div id="pageSpeaking" class="main-page-tab">
+      <div class="speaking-frame-shell"><iframe id="speakingFrame" class="speaking-frame" title="SpeakQuest English Speaking Roadmap" loading="lazy" data-src="SpeakQuest_English_Speaking_Roadmap_v3.html?embedded=1"></iframe></div>
+    </div>
+
+    <!-- TAB 4: PROGRESS & ANALYTICS -->
     <div id="pageProgress" class="main-page-tab">
       <div id="progressTabContent"></div>
     </div>
 
-    <!-- TAB 4: MOTIVATION & ACHIEVEMENTS -->
+    <!-- TAB 5: MOTIVATION & ACHIEVEMENTS -->
     <div id="pageJourney" class="main-page-tab">
       <div id="journeyTabContent"></div>
     </div>
@@ -1194,6 +1206,16 @@ function switchMainTab(tab) {
   setWorkspaceHeaderVisible(true);
   $$('.nav-tab').forEach(btn => { btn.classList.remove('active'); btn.setAttribute('aria-selected', 'false'); });
   $$('.main-page-tab').forEach(page => page.classList.remove('active'));
+  const headings={
+    learn:['Vocabulary Groups','Study by topic, strengthen weak vocabulary, and understand your progress.'],
+    review:['Smart Review','Practise the vocabulary you selected and strengthen weak recall.'],
+    speaking:['Speaking Roadmap','Build speaking skills through guided quests, topics, and real situations.'],
+    progress:['Learning Progress','Review your practice evidence, accuracy, and vocabulary growth.'],
+    journey:['My Journey','Track your streak, level, achievements, and long-term learning goals.']
+  };
+  const heading=headings[tab]||headings.learn;
+  if($('#workspaceTitle'))$('#workspaceTitle').textContent=heading[0];
+  if($('#workspaceDescription'))$('#workspaceDescription').textContent=heading[1];
   if (tab === 'learn') {
     $('#navLearn')?.classList.add('active');
     $('#navLearn')?.setAttribute('aria-selected', 'true');
@@ -1211,6 +1233,11 @@ function switchMainTab(tab) {
       $('#navReview')?.setAttribute('aria-selected', 'true');
       $('#pageSmartReview')?.classList.add('active');
       renderSmartReviewTab();
+    } else if (tab === 'speaking') {
+      $('#navSpeaking')?.classList.add('active');
+      $('#navSpeaking')?.setAttribute('aria-selected', 'true');
+      $('#pageSpeaking')?.classList.add('active');
+      const frame=$('#speakingFrame');if(frame&&!frame.getAttribute('src'))frame.setAttribute('src',frame.dataset.src);
     } else if (tab === 'progress') {
       $('#navProgress')?.classList.add('active');
       $('#navProgress')?.setAttribute('aria-selected', 'true');
@@ -2527,7 +2554,7 @@ async function initApp(){
   appReady=true;
   updateTopStats();
   renderHome();
-  if(!['learn','review','progress','journey'].includes(currentMainTab))currentMainTab='learn';
+  if(!['learn','review','speaking','progress','journey'].includes(currentMainTab))currentMainTab='learn';
   switchMainTab(currentMainTab);
   updateAIContext();
   $('#mainTaskbar')?.addEventListener('keydown',event=>{

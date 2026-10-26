@@ -1,19 +1,44 @@
 /* Private cloud backup shared by the learning and companion pages. */
 (function(root){
-  const K={days:'ivDays',stats:'ivStats',errors:'ivErrors',mistakes:'ivMistakePatterns',logs:'ivPracticeLogs',progress:'ivProgress',topics:'customTopics'};
+  const K={days:'ivDays',stats:'ivStats',errors:'ivErrors',mistakes:'ivMistakePatterns',logs:'ivPracticeLogs',progress:'ivProgress',topics:'customTopics',speaking:'speakquest.progress.v3'};
   const KEY='ivVaultKey',ETAG='ivVaultEtag',DIRTY='ivVaultDirty';
   const ACCOUNT_ID='ivAccountId',ACCOUNT_ETAG='ivAccountEtag',ACCOUNT_DIRTY='ivAccountDirty';
   const parse=(key,fallback)=>{try{return JSON.parse(localStorage.getItem(key))??fallback;}catch{return fallback;}};
   const normal=code=>String(code||'').replace(/[\s-]/g,'').toLowerCase();
   const vocabKey=value=>String(value||'').normalize('NFC').toLowerCase().trim().replace(/[’‘]/g,"'").replace(/\s+/g,' ');
-  function snapshot(){return {schema:1,days:parse(K.days,[]),stats:parse(K.stats,{}),errors:parse(K.errors,[]),mistakes:parse(K.mistakes,[]),logs:parse(K.logs,[]),progress:parse(K.progress,{}),customTopics:parse(K.topics,[])};}
+  function snapshot(){return {schema:1,days:parse(K.days,[]),stats:parse(K.stats,{}),errors:parse(K.errors,[]),mistakes:parse(K.mistakes,[]),logs:parse(K.logs,[]),progress:parse(K.progress,{}),customTopics:parse(K.topics,[]),speaking:parse(K.speaking,{})};}
   function apply(data){
     for(const [field,key] of Object.entries(K)){
-      const value=field==='topics'?data.customTopics:data[field];
+      const value=field==='topics'?data.customTopics:field==='speaking'?(data.speaking||{}):data[field];
       localStorage.setItem(key,JSON.stringify(value));
     }
   }
   const equal=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+  function mergeSpeakingProgress(left={},right={}){
+    const merged={...right,...left};
+    const a=left?._state||{},b=right?._state||{};
+    for(const key of new Set([...Object.keys(left||{}),...Object.keys(right||{})])){
+      if(key==='_state')continue;
+      const at=String(a.changedAt?.[key]||''),bt=String(b.changedAt?.[key]||'');
+      merged[key]=at||bt?(at>=bt?left[key]:right[key]):Boolean(left[key]||right[key]);
+    }
+    const checks={};
+    for(const key of new Set([...Object.keys(a.checks||{}),...Object.keys(b.checks||{})])){
+      const x=a.checks?.[key]||[],y=b.checks?.[key]||[];
+      const at=String(a.checksUpdatedAt?.[key]||''),bt=String(b.checksUpdatedAt?.[key]||'');
+      checks[key]=at||bt?[...(at>=bt?x:y)]:Array.from({length:Math.max(3,x.length,y.length)},(_,i)=>Boolean(x[i]||y[i]));
+    }
+    const completedAt={...b.completedAt,...a.completedAt};
+    for(const key of Object.keys(b.completedAt||{}))if(String(b.completedAt[key])>String(completedAt[key]||''))completedAt[key]=b.completedAt[key];
+    for(const key of Object.keys(completedAt))if(merged[key]!==true)delete completedAt[key];
+    const checksUpdatedAt={...b.checksUpdatedAt,...a.checksUpdatedAt};
+    for(const key of Object.keys(b.checksUpdatedAt||{}))if(String(b.checksUpdatedAt[key])>String(checksUpdatedAt[key]||''))checksUpdatedAt[key]=b.checksUpdatedAt[key];
+    const changedAt={...b.changedAt,...a.changedAt};
+    for(const key of Object.keys(b.changedAt||{}))if(String(b.changedAt[key])>String(changedAt[key]||''))changedAt[key]=b.changedAt[key];
+    const newest=String(a.updatedAt||'')>=String(b.updatedAt||'')?a:b;
+    merged._state={...b,...a,checks,checksUpdatedAt,changedAt,completedAt,last:newest.last||a.last||b.last||null,updatedAt:String(a.updatedAt||'')>String(b.updatedAt||'')?a.updatedAt:b.updatedAt};
+    return merged;
+  }
   const missingVocabulary=(local,remote)=>local.days.some(day=>{
     const cloudDay=remote.days.find(x=>x.id===day.id);
     return !cloudDay||(day.words||[]).some(word=>!(cloudDay.words||[]).some(x=>vocabKey(x.en)===vocabKey(word.en)));
@@ -37,6 +62,7 @@
       if(equal(l,r))return l;
       if(equal(l,b))return r;
       if(equal(r,b))return l;
+      if(path==='speaking'&&object(l)&&object(r))return mergeSpeakingProgress(l,r);
       if(path==='progress')return l; // Derived locally from lessons and practice logs.
       if(/(?:^|\.)(?:updatedAt|lastUpdated|lastSeenAt)$/.test(path)&&typeof l==='string'&&typeof r==='string')return l>r?l:r;
       if(Array.isArray(l)&&Array.isArray(r)){
@@ -113,6 +139,8 @@
       const current=snapshot();this.rememberRecovery(current);
       const merged=addVocabulary(JSON.parse(JSON.stringify(current)),remote.snapshot);
       if(this.recovery)addVocabulary(merged,this.recovery.snapshot);
+      merged.speaking=mergeSpeakingProgress(current.speaking,remote.snapshot.speaking);
+      if(this.recovery)merged.speaking=mergeSpeakingProgress(merged.speaking,this.recovery.snapshot.speaking);
       this.etag=remote.etag;localStorage.setItem(this.etagStorageKey(),this.etag);this.rememberBase(remote.snapshot);
       apply(merged);this.conflict=false;this.restoreView();this.queue(0);await this.flush();
       if(this.dirty)throw new Error('The combined vocabulary is kept locally. '+(this.lastError||'Cloud saving is still pending.'));

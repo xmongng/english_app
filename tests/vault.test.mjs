@@ -6,7 +6,7 @@ import { webcrypto } from 'node:crypto';
 import { createVaultHandler, vaultPath } from '../api/vault.js';
 
 const codeA='a'.repeat(64),codeB='b'.repeat(64);
-const content={schema:1,days:[{id:'day-1',words:[{en:'coffee',vi:'cà phê'}]}],stats:{xp:10},errors:[],mistakes:[],logs:[],progress:{},customTopics:[]};
+const content={schema:1,days:[{id:'day-1',words:[{en:'coffee',vi:'cà phê'}]}],stats:{xp:10},errors:[],mistakes:[],logs:[],progress:{},customTopics:[],speaking:{'skill:0-0':true}};
 function response(){return {statusCode:200,headers:{},setHeader(k,v){this.headers[k]=v;},status(v){this.statusCode=v;return this;},json(v){this.payload=v;return this;}};}
 function fakeStorage(){
  const records=new Map();let version=0;
@@ -33,10 +33,12 @@ test('vault persists data, isolates codes, and rejects stale writes',async()=>{
  try{
   const saved=await call('PUT',codeA,{snapshot:content,etag:null});assert.equal(saved.statusCode,200);
   const read=await call('GET',codeA);assert.equal(read.statusCode,200);assert.equal(read.payload.snapshot.days[0].words[0].en,'coffee');
+  assert.equal(read.payload.snapshot.speaking['skill:0-0'],true);
   assert.equal((await call('GET',codeB)).payload.exists,false);
   assert.equal((await call('PUT',codeA,{snapshot:content,etag:'"stale"'})).statusCode,409);
   assert.equal((await call('PUT',codeA,{snapshot:content,etag:read.payload.etag})).statusCode,200);
   assert.equal((await call('PUT',codeA,{snapshot:{days:[]},etag:null})).statusCode,400);
+  assert.equal((await call('PUT',codeB,{snapshot:{...content,speaking:[]},etag:null})).statusCode,400);
  }finally{if(old===undefined)delete process.env.BLOB_STORE_ID;else process.env.BLOB_STORE_ID=old;}
 });
 test('browser cloud sync keeps the recovery code local and restores saved vocabulary',async()=>{

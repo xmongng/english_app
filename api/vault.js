@@ -16,6 +16,7 @@ export function validSnapshot(value) {
     Array.isArray(value.days) && Array.isArray(value.errors) &&
     Array.isArray(value.mistakes) && Array.isArray(value.logs) &&
     Array.isArray(value.customTopics) &&
+    (value.speaking === undefined || (value.speaking && typeof value.speaking === 'object' && !Array.isArray(value.speaking))) &&
     value.stats && typeof value.stats === 'object' && !Array.isArray(value.stats) &&
     value.progress && typeof value.progress === 'object' && !Array.isArray(value.progress);
 }

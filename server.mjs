@@ -13,6 +13,7 @@ const { default: account } = await import('./api/account.js');
 const port = Number(process.env.PORT || 3000);
 const publicFiles = new Map([
   ['/index.html', 'text/html'], ['/ielts_vocab_master.html', 'text/html'],
+  ['/SpeakQuest_English_Speaking_Roadmap_v3.html', 'text/html'],
   ['/chat_companion.html', 'text/html'], ['/learning-core.js', 'text/javascript'], ['/learning-theme.css', 'text/css'],
   ['/vault-sync.js', 'text/javascript'],
   ['/import-flow.js', 'text/javascript'],

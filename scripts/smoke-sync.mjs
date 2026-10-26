@@ -30,6 +30,7 @@ function client(cookie,values=new Map()){
  vm.runInContext(source,context);c.vault=context.CloudVault;
  c.start=async()=>{await c.vault.init({create:true,onRestore:()=>{view=JSON.parse(values.get('ivDays')||'[]');}});assert.equal(c.vault.mode,'account',JSON.stringify({status:c.vault.lastStatus,error:c.vault.lastError}));view=JSON.parse(values.get('ivDays')||'[]');};
  c.add=day=>{const days=JSON.parse(values.get('ivDays')||'[]');days.push(day);change('ivDays',JSON.stringify(days));c.vault.queue(100000);};
+ c.passSpeaking=id=>{const progress=JSON.parse(values.get('speakquest.progress.v3')||'{}');progress[id]=true;progress._state={...(progress._state||{}),updatedAt:new Date().toISOString()};change('speakquest.progress.v3',JSON.stringify(progress));c.vault.queue(100000);};
  c.view=()=>view;return c;
 }
 try{
@@ -39,7 +40,9 @@ try{
  const secondCookie=await account('login',email,password);
  const a=client(firstCookie),b=client(secondCookie);await a.start();await b.start();
  a.add(lesson('mac-mini','coffee'));await a.vault.flush();assert.equal(a.vault.dirty,false);
+ a.passSpeaking('skill:0-0');await a.vault.flush();assert.equal(a.vault.dirty,false);
  b.add(lesson('laptop','tea'));await b.vault.flush();assert.equal(b.vault.dirty,false);assert.equal(b.vault.conflict,false);
+ b.passSpeaking('topic:0-0');await b.vault.flush();assert.equal(b.vault.dirty,false);assert.equal(b.vault.conflict,false);
  await a.vault.refresh();assert.equal(a.view().length,2);
  const tab=client(firstCookie,a.values);await tab.start();
  a.add(lesson('another-tab','bread'));await a.vault.flush();
@@ -47,7 +50,9 @@ try{
  await tab.vault.flush();
  assert.ok(tab.view().some(x=>x.id==='another-tab'));
  await b.vault.refresh();assert.equal(b.view().length,3);
- console.log('Passed: same-account independent device additions merge; another tab updates; both devices show all three lessons.');
+ await a.vault.refresh();const speaking=JSON.parse(a.values.get('speakquest.progress.v3'));
+ assert.equal(speaking['skill:0-0'],true);assert.equal(speaking['topic:0-0'],true);
+ console.log('Passed: vocabulary and speaking progress merge across devices; another tab updates; both devices retain all lessons and speaking passes.');
 }finally{
  for(const c of clients){if(c.vault.timer)clearTimeout(c.vault.timer);if(c.vault.storageTimer)clearTimeout(c.vault.storageTimer);}
 }

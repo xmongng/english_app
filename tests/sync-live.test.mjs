@@ -6,7 +6,7 @@ import {webcrypto} from 'node:crypto';
 const source=fs.readFileSync(new URL('../vault-sync.js',import.meta.url),'utf8');
 const copy=x=>JSON.parse(JSON.stringify(x));
 const lesson=(id,word)=>({id,name:id,words:[{en:word,vi:'nghĩa',example:`I use ${word} every day.`}]});
-const initial=()=>({schema:1,days:[lesson('first','coffee')],stats:{xp:0},errors:[],mistakes:[],logs:[],progress:{},customTopics:[]});
+const initial=()=>({schema:1,days:[lesson('first','coffee')],stats:{xp:0},errors:[],mistakes:[],logs:[],progress:{},customTopics:[],speaking:{}});
 function setup(){
  let cloud=initial(),version=1,signedIn=true;const clients=[];
  let holdRead=null;
@@ -36,6 +36,7 @@ function setup(){
   vm.runInContext(source,context);client.vault=context.CloudVault;
   client.start=async()=>{await client.vault.init({create:true,onRestore:()=>{view=JSON.parse(values.get('ivDays')||'[]');}});view=JSON.parse(values.get('ivDays')||'[]');};
   client.add=day=>{const days=JSON.parse(values.get('ivDays'));days.push(day);localStorage.setItem('ivDays',JSON.stringify(days));client.vault.queue(100000);};
+  client.passSpeaking=id=>{const progress=JSON.parse(values.get('speakquest.progress.v3')||'{}');progress[id]=true;progress._state={...(progress._state||{}),updatedAt:new Date().toISOString()};localStorage.setItem('speakquest.progress.v3',JSON.stringify(progress));client.vault.queue(100000);};
   client.view=()=>view;return client;
  }
  return {holdRead(){let release,started;const wait=new Promise(r=>release=r),ready=new Promise(r=>started=r);holdRead={wait,started};return {ready,release};},device,cloud:()=>copy(cloud),signIn:value=>{signedIn=value;}};
@@ -59,6 +60,25 @@ test('two devices preserve independent additions and poll the latest cloud copy'
  // The interval callback starts refresh without blocking the browser event loop.
  await a.vault.refresh();
  assert.equal(a.view().length,3);
+});
+test('speaking roadmap progress syncs to another device and merges independent passes',async()=>{
+ const app=setup(),a=app.device(),b=app.device();await a.start();await b.start();
+ a.passSpeaking('skill:0-0');await a.vault.flush();
+ b.passSpeaking('topic:0-0');await b.vault.flush();
+ await a.vault.refresh();
+ const progress=JSON.parse(a.values.get('speakquest.progress.v3'));
+ assert.equal(progress['skill:0-0'],true);assert.equal(progress['topic:0-0'],true);
+ assert.equal(a.vault.conflict,false);assert.equal(b.vault.conflict,false);
+});
+test('newer speaking unpass and unchecked criteria win during device merge',async()=>{
+ const app=setup(),a=app.device();await a.start();
+ const base=initial(),local=copy(base),remote=copy(base);
+ base.speaking={'skill:0-0':true,_state:{checks:{'skill:0-0':[true,true,true]},checksUpdatedAt:{'skill:0-0':'2026-10-25T10:00:00.000Z'},changedAt:{'skill:0-0':'2026-10-25T10:00:00.000Z'},completedAt:{'skill:0-0':'2026-10-25T10:00:00.000Z'},updatedAt:'2026-10-25T10:00:00.000Z'}};
+ local.speaking=copy(base.speaking);local.speaking['skill:0-0']=false;local.speaking._state.checks['skill:0-0']=[true,false,true];local.speaking._state.changedAt['skill:0-0']='2026-10-26T10:00:00.000Z';local.speaking._state.checksUpdatedAt['skill:0-0']='2026-10-26T10:00:00.000Z';local.speaking._state.updatedAt='2026-10-26T10:00:00.000Z';
+ remote.speaking=copy(base.speaking);remote.speaking._state.updatedAt='2026-10-25T12:00:00.000Z';
+ const merged=a.vault.mergeSnapshots(base,local,remote);
+ assert.equal(merged.conflicts.length,0);assert.equal(merged.snapshot.speaking['skill:0-0'],false);
+ assert.deepEqual(Array.from(merged.snapshot.speaking._state.checks['skill:0-0']),[true,false,true]);
 });
 test('independent words merge within a lesson, while conflicting edits are preserved for review',async()=>{
  const app=setup(),a=app.device();await a.start();
