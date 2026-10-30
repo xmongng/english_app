@@ -3171,7 +3171,12 @@ function getGroupDays(groupId) {
       isVirtual: true
     });
   }
-  return groupDays;
+  return groupDays.sort((a,b) => {
+    if(a.isVirtual !== b.isVirtual)return a.isVirtual ? 1 : -1;
+    const aCreated=Date.parse(a.createdAt||'')||Date.parse(`${a.date||'1970-01-01'}T00:00:00`)||0;
+    const bCreated=Date.parse(b.createdAt||'')||Date.parse(`${b.date||'1970-01-01'}T00:00:00`)||0;
+    return bCreated-aCreated||String(b.id||'').localeCompare(String(a.id||''));
+  });
 }
 
 function renderGroup() {
@@ -4494,11 +4499,19 @@ async function deleteDay(){
 
 function showAddWordModal(){
   showModal(`<div class="modal-title">Add / Import Vocabulary</div>
-    <div class="tabs"><button class="tab active" onclick="showQuickAdd()">Quick add</button><button class="tab" onclick="showBulkImport()">Bulk paste</button></div>
+    <div class="tabs" role="tablist" aria-label="Vocabulary entry method"><button id="quickAddTab" class="tab active" role="tab" aria-selected="true" aria-controls="addBody" onclick="showQuickAdd()">Quick add</button><button id="bulkImportTab" class="tab" role="tab" aria-selected="false" aria-controls="addBody" onclick="showBulkImport()">Bulk paste</button></div>
     <div id="addBody"></div>`);
   showQuickAdd();
 }
+function setImportTab(activeTab){
+  const quick=$('#quickAddTab');const bulk=$('#bulkImportTab');
+  if(!quick||!bulk)return;
+  const isQuick=activeTab==='quick';
+  quick.classList.toggle('active',isQuick);bulk.classList.toggle('active',!isQuick);
+  quick.setAttribute('aria-selected',String(isQuick));bulk.setAttribute('aria-selected',String(!isQuick));
+}
 function showQuickAdd(){
+  setImportTab('quick');
   $('#addBody').innerHTML=`<div class="form-group"><label class="form-label">English *</label><input class="input" id="mEn" placeholder="e.g. cohesive devices"/></div>
     <div class="form-group"><label class="form-label">Vietnamese</label><input class="input" id="mVi" placeholder="e.g. phương tiện liên kết"/></div>
     <div class="form-group"><label class="form-label">Meaning *</label><textarea class="textarea" id="mMean" placeholder="Brief definition..."></textarea></div>
@@ -4514,6 +4527,7 @@ function showQuickAdd(){
     <div class="modal-btns"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-p" onclick="doAddWord()">Add</button></div>`;
 }
 function showBulkImport(){
+  setImportTab('bulk');
   window._bulkItems=null;window._bulkSource=null;
   $('#addBody').innerHTML=`<div class="form-group"><label class="form-label">Paste any format</label><textarea class="textarea" id="bulkText" style="min-height:150px" placeholder="cohesive devices - phương tiện liên kết\nlexical resource: tiêu chí từ vựng | range and accuracy of vocabulary"></textarea></div>
     <div class="form-group">
