@@ -129,6 +129,8 @@
     
     .home-toolbar{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:6px}
     .home-toolbar .filters{flex:1;display:grid;grid-template-columns:2fr repeat(3,1fr);gap:8px;margin-bottom:0}
+    .group-lesson-filters{display:grid;grid-template-columns:minmax(180px,320px) 148px;gap:8px;flex:0 1 auto}
+    .group-lesson-filters .select{width:148px}
     .home-actions{display:flex;align-items:center;gap:8px}
     .btn-icon-only{width:38px;height:38px;padding:0;display:inline-flex;align-items:center;justify-content:center}
     
@@ -424,6 +426,8 @@
     @media(max-width:768px){
       .home-toolbar{flex-direction:column;align-items:stretch}
       .home-toolbar .filters{grid-template-columns:1fr 1fr}
+      .group-lesson-filters{grid-template-columns:minmax(0,1fr) 132px;width:100%}
+      .group-lesson-filters .select{width:132px}
       .home-actions{justify-content:flex-end}
       .filters,.vocab-toolbar{grid-template-columns:1fr 1fr}
       .activities-grid{grid-template-columns:repeat(2,1fr)}
@@ -3209,11 +3213,15 @@ function renderGroup() {
   
   let h = `
     <div class="home-toolbar" style="margin-top:20px;margin-bottom:14px">
-      <div class="filters" style="grid-template-columns:1fr">
+      <div class="group-lesson-filters">
         <div class="search-input-wrapper">
           <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input id="groupSearch" class="input" placeholder="Search lessons..." oninput="filterGroupDays()">
         </div>
+        <select id="groupDateSort" class="select" aria-label="Sort lessons by date" onchange="filterGroupDays()">
+          <option value="newest">Newest first</option>
+          <option value="oldest">Oldest first</option>
+        </select>
       </div>
       <div class="home-actions">
         <button class="btn btn-p btn-sm" onclick="showNewDayInGroupModal()">+ New Lesson</button>
@@ -3286,7 +3294,13 @@ function renderGroupDaysList(groupDays) {
 function filterGroupDays() {
   const q = norm($('#groupSearch')?.value || '');
   const groupDays = getGroupDays(currentGroupId);
-  const filtered = q ? groupDays.filter(d => norm(d.name).includes(q)) : groupDays;
+  const filtered = q ? groupDays.filter(d => norm(d.name).includes(q)) : [...groupDays];
+  if($('#groupDateSort')?.value==='oldest')filtered.sort((a,b)=>{
+    if(a.isVirtual !== b.isVirtual)return a.isVirtual ? 1 : -1;
+    const aCreated=Date.parse(a.createdAt||'')||Date.parse(`${a.date||'1970-01-01'}T00:00:00`)||0;
+    const bCreated=Date.parse(b.createdAt||'')||Date.parse(`${b.date||'1970-01-01'}T00:00:00`)||0;
+    return aCreated-bCreated||String(a.id||'').localeCompare(String(b.id||''));
+  });
   $('#groupDaysGrid').innerHTML = renderLessonCards(filtered);
 }
 

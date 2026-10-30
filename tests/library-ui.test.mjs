@@ -13,6 +13,14 @@ test('group lessons are ordered by creation time with virtual lesson last',()=>{
   assert.match(source,/a\.isVirtual \? 1 : -1/);
 });
 
+test('group toolbar uses a compact search beside a date-order filter',()=>{
+  assert.match(html,/\.group-lesson-filters\{display:grid;grid-template-columns:minmax\(180px,320px\) 148px/);
+  assert.match(html,/id="groupDateSort"[^>]+aria-label="Sort lessons by date"/);
+  assert.match(html,/<option value="newest">Newest first<\/option>/);
+  assert.match(html,/<option value="oldest">Oldest first<\/option>/);
+  assert.match(html,/groupDateSort'\)\?\.value==='oldest'/);
+});
+
 test('add vocabulary tabs visibly follow the selected entry method',()=>{
   assert.match(html,/id="quickAddTab"[^>]+aria-selected="true"/);
   assert.match(html,/id="bulkImportTab"[^>]+aria-selected="false"/);
